@@ -14,7 +14,6 @@ module.exports = new datafire.Action({
     default: 10
   }],
   handler: async (input, context) => {
-    if (input.password == "IamLincoln") {
       let listMessagesResponse = await google_gmail.users.messages.list({
         userId: "me",
       }, context);
@@ -35,6 +34,5 @@ module.exports = new datafire.Action({
         alt: "json",
       }, context));
       return result;
-    }
   },
 });
