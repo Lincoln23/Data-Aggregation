@@ -9,6 +9,7 @@ module.exports = new datafire.Action({
       dc: "us18",
     }, context);
      for (const campaign_Report of resultList.lists) {
+       console.log(campaign_Report.id);
       //if user marked as spam
       let abuseReport = await mailchimp.getListsIdAbuseReports({
         list_id: campaign_Report.id,
@@ -16,21 +17,21 @@ module.exports = new datafire.Action({
       }, context);
       //Get up to the previous 180 days of daily detailed aggregated activity stats for a list, not including Automation activity.
       let activity = await mailchimp.getListsIdActivity({
-        list_id: "17a510f346",
+        list_id: campaign_Report.id,
         dc: "us18",
       }, context);
       //Get a list of the top email clients based on user-agent strings.
       let topClients = await mailchimp.getListsIdClients({
-        list_id: "17a510f346",
+        list_id: campaign_Report.id,
         dc: "us18",
       }, context);
       let histroy = await mailchimp.getListsIdGrowthHistory({
-        list_id: "17a510f346",
+        list_id: campaign_Report.id,
         dc: "us18",
       }, context);
       //Get the locations (countries) that the list's subscribers have been tagged to based on geocoding their IP address.
       let location = await mailchimp.getListsIdLocations({
-        list_id: "17a510f346",
+        list_id: campaign_Report.id,
         dc: "us18",
       }, context);
       let temp = {
@@ -57,7 +58,6 @@ module.exports = new datafire.Action({
         dc: "us18",
         campaign_id: value.id,
       }, context);
-      console.log(campaign_Report);
         let temp = {
           "Campaign Name": campaign_Report.campaign_title,
           "create_time" : value.create_time,
