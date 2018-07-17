@@ -34,7 +34,10 @@ module.exports = new datafire.Action({
         list_id: campaign_Report.id,
         dc: "us18",
       }, context);
+<<<<<<< HEAD
       //Creating a custom JSON response for Lists
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
       let temp = {
         "List Name": campaign_Report.name,
         "permission_reminder": campaign_Report.permission_reminder,
@@ -59,7 +62,10 @@ module.exports = new datafire.Action({
         dc: "us18",
         campaign_id: value.id,
       }, context);
+<<<<<<< HEAD
       //Creating a custom JSON repsonse for the Campaigns 
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
         let temp = {
           "Campaign Name": campaign_Report.campaign_title,
           "create_time" : value.create_time,
@@ -79,4 +85,9 @@ module.exports = new datafire.Action({
     }
     return result;
   },
+<<<<<<< HEAD
 });
+=======
+});
+//dc: "us18",
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0

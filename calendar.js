@@ -5,8 +5,12 @@ let google_calendar = require('@datafire/google_calendar').actions;
 module.exports = new datafire.Action({
   inputs: [{
     type: "string",
+<<<<<<< HEAD
     title: "id",
     default: "lincoln@sublimeapp.com"
+=======
+    title: "id"
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
   }, {
     type: "string",
     title: "start",
@@ -21,6 +25,7 @@ module.exports = new datafire.Action({
     default: "UTC"
   }],
   handler: async (input, context) => {
+<<<<<<< HEAD
     //return all events in the calendar, can add addition timeMax and timeMin params in RFC3339 timeStamp
     const events = new Promise((resolve, reject) => {
       const temp = google_calendar.events.list({
@@ -52,3 +57,23 @@ module.exports = new datafire.Action({
     }
   },
 });
+=======
+    let result = []
+    result.push(await google_calendar.events.list({
+      calendarId: input.id,
+    }, context));
+    result.push (await google_calendar.freebusy.query({
+      body: {
+        timeMin: input.start,
+        timeMax: input.end,
+        items: [{
+          id: input.id,
+        }],
+        timeZone: input.timeZone,
+      },
+      alt: "json",
+    }, context));
+    return result;
+  },
+});
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0

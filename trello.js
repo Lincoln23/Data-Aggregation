@@ -5,7 +5,10 @@ const trello = require('@datafire/trello').actions;
 module.exports = new datafire.Action({
   handler: async (input, context) => {
     let result = [];
+<<<<<<< HEAD
     // get all available boards to the user
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
     let boards = await trello.getMembersBoardsByIdMember({
       idMember: "lincoln346",
       lists: "none",
@@ -14,7 +17,10 @@ module.exports = new datafire.Action({
     }, context);
     for (const key1 in boards) {
       if (boards.hasOwnProperty(key1)) {
+<<<<<<< HEAD
         // loop through each board to get its lists anad cards
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
         let listsAndCards = await trello.getBoardsListsByIdBoard({
           idBoard: boards[key1].id,
           cards: "all",
@@ -22,7 +28,10 @@ module.exports = new datafire.Action({
           filter: "all",
           fields: "all",
         }, context);
+<<<<<<< HEAD
         //Creating the first part of the custom JSON reponse
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
         let temp = {
           "Board_name": boards[key1].name,
           "description": boards[key1].desc,
@@ -30,14 +39,21 @@ module.exports = new datafire.Action({
           "dateLastActiviy": boards[key1].dateLastActivity,
           "url": boards[key1].url,
         }
+<<<<<<< HEAD
         //looping through the Cards array in listsAndCards
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
         for (const key2 in listsAndCards) {
           if (listsAndCards.hasOwnProperty(key2)) {
             let biggerResult = [];
             listsAndCards[key2].cards.forEach(element => {
               let checkListArray = [];
+<<<<<<< HEAD
               let memberListArray = [];
               // for each card, get the checklist with it
+=======
+              let memberListArray= [];
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
               element.idChecklists.forEach(async (value) => {
                 let checklist = await trello.getChecklistsByIdChecklist({
                   idChecklist: value,
@@ -49,7 +65,10 @@ module.exports = new datafire.Action({
                 }, context);
                 checkListArray.push(checklist);
               });
+<<<<<<< HEAD
               //looping through the members array in listsAndCards 
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
               element.idMembers.forEach(async (people) => {
                 let members = await trello.getMembersByIdMember({
                   idMember: people,
@@ -57,7 +76,10 @@ module.exports = new datafire.Action({
                 }, context);
                 memberListArray.push(members);
               });
+<<<<<<< HEAD
               //Creating the second part of the of the custom JSON reponse with the cards
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
               let tempList = {
                 "List_closed": element.closed,
                 cards: {
@@ -75,7 +97,10 @@ module.exports = new datafire.Action({
               }
               biggerResult.push(tempList);
             });
+<<<<<<< HEAD
             //concating the second part of the custom JSON reponse to the first
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
             temp[listsAndCards[key2].name] = biggerResult;
           }
         }
@@ -84,4 +109,8 @@ module.exports = new datafire.Action({
     }
     return result;
   },
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0

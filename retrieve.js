@@ -2,6 +2,7 @@
 let datafire = require('datafire');
 let google_sheets = require('@datafire/google_sheets').actions;
 let inputs = require('./create').inputs;
+<<<<<<< HEAD
 let mysql = require('mysql');
 
 let con = mysql.createConnection({
@@ -15,13 +16,19 @@ con.connect(err => {
   if (err) throw err;
   console.log("Connected to db");
 });
+=======
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
 
 function getColumnLetter(idx) {
   return String.fromCharCode(idx + 64);
 }
 
 module.exports = new datafire.Action({
+<<<<<<< HEAD
   description: "gets information from google sheets",
+=======
+  description: "",
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
   handler: (input, context) => {
     let startRow = 1;
     let endRow = 9999;
@@ -35,14 +42,19 @@ module.exports = new datafire.Action({
       }, context))
       .then(data => {
         let rows = (data.values || []).map((row, rowNum) => {
+<<<<<<< HEAD
           let obj = {
             id: rowNum + 1
           };
+=======
+          let obj = {id: rowNum + 1};
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
           inputs.forEach((input, idx) => {
             obj[input.title] = row[idx]
           });
           return obj;
         });
+<<<<<<< HEAD
 
         rows.forEach(json => {
           let sql = 'INSERT INTO Contacts (Name, Organization, Phone, Email, Location) VALUES ("?","?","?","?","?")';
@@ -58,3 +70,9 @@ module.exports = new datafire.Action({
       })
   },
 });
+=======
+        return rows;
+      })
+  },
+});
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0

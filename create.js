@@ -19,7 +19,11 @@ module.exports = new datafire.Action({
     title: "City"
   }, {
     type: "string",
+<<<<<<< HEAD
     title: "Organization"
+=======
+    title: "Organiztion"
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
   }],
   handler: (input, context) => {
     return datafire.flow(context)
@@ -37,4 +41,9 @@ module.exports = new datafire.Action({
   },
 });
 
+<<<<<<< HEAD
 const INPUTS = module.exports.inputs;
+=======
+const INPUTS = module.exports.inputs;
+
+>>>>>>> c845b79326b42b0d730161fedb2ef3e1a33103e0
