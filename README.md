@@ -66,7 +66,7 @@ inputs: [{
 ```
 **POST** Request to:
 ```sh                       
-http://18.206.218.97:3000/postSheet
+http://localhost:3000/postSheet
 ```
 With Json Format 
 ```sh                       

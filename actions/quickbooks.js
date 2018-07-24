@@ -1,8 +1,8 @@
 const QuickBooks = require('node-quickbooks')
 const datafire = require('datafire');
 
-let qbo = new QuickBooks('Q0Wnyd8k3Z72vEuFKLkuAMxflMajhWTSo5UWb3D6D5e9vgNRh0', //client id
-  'jBWZBF6tx11An5pXM6O3QiMPRzxhvhgN8c7r6Ryg', //secret id
+let qbo = new QuickBooks('', //client id
+  '', //secret id
   '', //OAuth Token
   false, //token secret, dont need or oauth2
   193514791715979,
