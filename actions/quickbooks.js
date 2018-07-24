@@ -5,7 +5,7 @@ let qbo = new QuickBooks('', //client id
   '', //secret id
   '', //OAuth Token
   false, //token secret, dont need or oauth2
-  193514791715979,
+  193514791715979, //company id
   true, // use the sandbox?
   true, // enable debugging?
   23, // set minorversion
