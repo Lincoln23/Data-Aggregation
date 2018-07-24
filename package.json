@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "@datafire/facebook": "4.0.0",
+    "@datafire/google_analytics": "5.0.0",
+    "@datafire/google_calendar": "5.0.0",
+    "@datafire/google_gmail": "5.0.0",
+    "@datafire/google_sheets": "2.0.2",
+    "@datafire/linkedin": "4.0.0",
+    "@datafire/magento": "5.0.1",
+    "@datafire/mailchimp": "6.0.0",
+    "@datafire/salesforce": "4.0.0",
+    "@datafire/stripe": "4.0.1",
+    "@datafire/trello": "5.0.0",
+    "@datafire/xero": "4.1.1",
+    "axios": "^0.18.0",
+    "mysql": "^2.16.0",
+    "node-quickbooks": "^2.0.24",
+    "simple-oauth2": "^2.2.0"
+  },
+  "name": "Data-Integrations",
+  "version": "1.0.0"
+}

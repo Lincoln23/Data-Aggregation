@@ -1,0 +1,112 @@
+actions:
+  create: ./actions/create.js
+  retrieve: ./actions/retrieve.js
+  linkedin: ./actions/linkedin.js
+  facebook: ./actions/facebook.js
+  gmail: ./actions/gmail.js
+  calendar: ./actions/calendar.js
+  salesforce: ./actions/salesforce.js
+  xero: ./actions/xero.js
+  trello: ./actions/trello.js
+  mailchimp: ./actions/mailchimp.js
+  google_analytics: ./actions/google_analytics.js
+  magento: ./actions/magento.js
+  stripe: ./actions/stripe.js
+  quickbooks: ./actions/quickbooks.js
+paths:
+  /quickbooks:
+    get:
+      action: quickbooks
+      accounts: {}
+  /getSheet:
+    get:
+      action: retrieve
+      accounts: {}
+  /postSheet:
+    post:
+      action: create
+      accounts: {}
+  /linkedin:
+    get:
+      action: linkedin
+      accounts: {}
+  /gmail:
+    get:
+      action: gmail
+      accounts: {}
+  /calendar:
+    get:
+      action: calendar
+      accounts: {}
+  /salesforce:
+    get:
+      action: salesforce
+      accounts: {}
+  /xero:
+    get:
+      action: xero
+      accounts: {}
+  /trello:
+    get:
+      action: trello
+      accounts: {}
+  /mailchimp:
+    get:
+      action: mailchimp
+      accounts: {}
+  /analytics:
+    get:
+      action: google_analytics
+      accounts: {}
+  /magento:
+    get:
+      action: magento
+      accounts: {}
+  /stripe:
+    get:
+      action: stripe
+      accounts: {}
+options:
+  cors: true
+tests: {}
+tasks:
+  googles_sheets:
+    schedule: cron(0 */12 * * *)
+    action: retrieve
+    accounts: {}
+  linkedin:
+    schedule: cron(0 */12 * * *)
+    action: linkedin
+    accounts: {}
+    input: {}
+  gmail:
+    schedule: cron(0 */12 * * *)
+    action: gmail
+    accounts: {}
+    input: {}
+  calendar:
+    schedule: cron(0 */12 * * *)
+    action: calendar
+    accounts: {}
+    input: {}
+  salesforce:
+    schedule: cron(0 */12 * * *)
+    action: salesforce
+    accounts: {}
+  task5:
+    schedule: cron(0 */12 * * *)
+    action: xero
+    accounts: {}
+  trello:
+    schedule: cron(0 */12 * * *)
+    action: trello
+    accounts: {}
+  mailchimp:
+    schedule: cron(0 */12 * * *)
+    action: mailchimp
+    accounts: {}
+  analytics:
+    schedule: cron(0 */12 * * *)
+    action: google_analytics
+    accounts: {}
+
