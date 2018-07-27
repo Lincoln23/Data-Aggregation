@@ -1,21 +1,35 @@
 const mysql = require('mysql');
 const axios = require('axios');
 
-const connection = mysql.createConnection({
-  host: "host",
-  user: "user",
-  password: "pass",
-  database: "Db"
-});
 
-connection.connect(err => {
-  if (err) throw err;
-  console.log("Connected to db");
-});
+class Database {
+    constructor(config) {
+        this.connection = mysql.createConnection(config);
+    }
 
+    query(sql, args) {
+        return new Promise((resolve, reject) => {
+            this.connection.query(sql, args, (err, rows) => {
+                if (err)
+                    return reject(err);
+                resolve(rows);
+            });
+        });
+    }
 
+    close() {
+        return new Promise((resolve, reject) => {
+            this.connection.end(err => {
+                if (err)
+                    return reject(err);
+                resolve();
+            });
+        });
+    }
+}
 
- module.exports = connection;
+module.exports = Database;
+
 
  axios.all([
    axios.get('http://localhost:3000/quickbooks'),
