@@ -2,12 +2,17 @@
 const datafire = require('datafire');
 const db = require('./setup.js');
 let fs = require('fs');
-
 let salesforce = require('@datafire/salesforce').actions;
-module.exports = new datafire.Action({
-    //TODO sync time first
-    handler: (input, context) => {
 
+module.exports = new datafire.Action({
+    handler: async (input, context) => {
+        let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format
+        const config = {
+            host: "host",
+            user: "user",
+            password: "pass",
+            database: "db"
+        };
         let database = new db(config);
         let newDataContact = 0; // set to true only if there is new data and it will update the last synced time
         let newDataOpportunity = 0; // set to true only if there is new data and it will update the last synced time
@@ -15,8 +20,8 @@ module.exports = new datafire.Action({
         let contactsSyncTime;
         let opportunitySyncTime;
 
-        if (!fs.existsSync('./SalesForce.txt')) {
 
+        if (!fs.existsSync('./SalesForce.txt')) {
             fs.writeFile("SalesForce.txt", "SalesForce Synced for the first time", function (err) {
                 if (err) console.log(err);
                 console.log("The file was saved!");
@@ -39,61 +44,25 @@ module.exports = new datafire.Action({
             });
         }
 
-
+        //----------------------------------------Query for Contacts -------------------------------------------//
         database.query('SELECT TIME AS Current FROM SyncTime WHERE NAME = "SalesForceContact"').then(result => {
             console.log(result);
             contactsSyncTime = result[0].Current;
             console.log("Sync Time for contactsSyncTime:" + contactsSyncTime);
-        }).catch((err) => {
-            console.log("Error selecting from SyncTime for SalesForceContact, Message: " + err);
-        });
-
-        database.query('SELECT TIME AS Current FROM SyncTime WHERE NAME = "SalesForceOpportunity" ').then(result => {
-            console.log(result);
-            opportunitySyncTime = result[0].Current;
-            console.log("Sync Time for opportunitySyncTime:" + opportunitySyncTime);
-        }).catch(err => {
-            console.log("Error selecting from SyncTime for SalesForceOpportunity, Message: " + err);
-        });
-
-
-        //queries for contacts
-        let queryContacts = new Promise((resolve, reject) => {
+            return contactsSyncTime;
+        }).then(async time => {
             try {
-                let resultContact = salesforce.version.query.get({
+                return await salesforce.version.query.get({ //dataFire
                     version: "v24.0",
-                    q: "SELECT Id, Name, email, phone, Account.Name, Account.Id, contact.owner.Alias FROM Contact WHERE (LastModifiedDate > " + contactsSyncTime +
-                        ") ORDER BY Name ASC ",
+                    q: "SELECT Id, Name,email, phone, Account.Name, Account.Id, contact.owner.Alias FROM Contact Where LastModifiedDate > " + time + " ORDER BY Name ASC",
                 }, context);
-                resolve(resultContact)
             } catch (e) {
-                reject(e);
+                throw(e);
             }
-        }).catch(e => {
-            console.log("Error in queryContacts. Message: " + e);
-        });
-        //queries for Opportunities
-        let queryOpportunity = new Promise((resolve, reject) => {
-            try {
-                let resultOpportunities = salesforce.version.query.get({
-                    version: "v24.0",
-                    q: "SELECT id, opportunity.name, Account.Name, Accountid, Amount, Createddate, closedate, stageName, expectedRevenue From Opportunity WHERE (LastModifiedDate > " + opportunitySyncTime + " ) ORDER BY Name ASC",
-                }, context);
-                resolve(resultOpportunities);
-            } catch (e) {
-                reject(e);
-            }
-        }).catch(e => {
-            console.log("Error in queryOpportunity. Message: " + e);
-        });
-
-        Promise.all([queryContacts, queryOpportunity]).then((value) => {
-            let contacts = value[0].records; //contacts object
-            let opportunity = value[1].records; // opportunity object
-            contacts.forEach(element => {
-                newDataContact = 1;
-                //For objects that are node, need to set the properties inside to be null as well
-                if (element.Account == null) {
+        }).then(result => {
+            result.records.forEach(element => {
+                newDataContact = 1; // there is new data so set to 1
+                if (element.Account == null) {//For objects that are null, any properties within need to be set as null as well
                     element.Account = {
                         "Name": null,
                         "Id": null,
@@ -105,48 +74,66 @@ module.exports = new datafire.Action({
                 }
                 let sqlContact = 'INSERT INTO SalesForceContact (ContactId, Name, Email, Phone,AccountName, AccountID,Alias) VALUES (?,?,?,?,?,?,?)';
                 let contactValues = [element.Id, element.Name, element.Email, element.Phone, element.Account.Name, element.Account.Id, element.Owner.Alias];
-                try {
-                    database.query(sqlContact, contactValues, (err) => {
-                        if (err) throw err;
-                        console.log("success inserting to SalesForceContact");
-                    });
-                } catch (err) {
-                    console.log('Error Occurred in Contacts.foreach loop, Message: ' + err);
-                }
+                database.query(sqlContact, contactValues).catch(e => {
+                    console.log("Error in inserting into SalesForceContact, Message: " + e);
+                });
+                console.log("success inserting to SalesForceContact");
             });
+        }).then(() => {
+            if (newDataContact) { //only update time if there is new data
+                console.log("There is new Data for Contacts");
+                let sqlContact = 'Update SyncTime Set Time = ? WHERE Name = "SalesForceContact" ';
+                database.query(sqlContact, currentTime).catch(e => {
+                    console.log("Error updating SyncTime for SalesForceContact, Message: " + e);
+                });
+                console.log("success updating SyncTime for SalesForceContact");
+            }
+        }).catch(err => {
+            console.log("Error caught in final catch block for Contacts, Message: " + err);
+        });
 
-            opportunity.forEach(value => {
-                newDataOpportunity = 1;
+        //----------------------------------------Query for Opportunities -------------------------------------------//
+        database.query('SELECT TIME AS Current FROM SyncTime WHERE NAME = "SalesForceOpportunity" ').then(result => {
+            console.log(result);
+            opportunitySyncTime = result[0].Current;
+            console.log("Sync Time for opportunitySyncTime:" + opportunitySyncTime);
+            return opportunitySyncTime;
+        }).then(async (time) => {
+            try {
+                return await salesforce.version.query.get({
+                    version: "v24.0",
+                    q: "SELECT id, opportunity.name, Account.Name, Accountid, Amount, Createddate, closedate, stageName, expectedRevenue From Opportunity WHERE LastModifiedDate > " + time + "  ORDER BY Name ASC",
+                }, context);
+            } catch (e) {
+                throw(e);
+            }
+        }).then(values => {
+            values.records.forEach(value => {
+                newDataOpportunity = 1; // there is new data so set to 1
+                if (value.Account == null) {//For objects that are null, any properties within need to be set as null as well
+                    value.Account = {
+                        "Name": null
+                    }
+                }
                 let sqlOpportunity = 'INSERT INTO SalesForceOpportunity (OpportunityId, Name, AccountName, AccountID,Amount, CreatedDate,CloseDate,StageName,ExpectedRevenue) VALUES (?,?,?,?,?,?,?,?,?)';
                 let opportunityValues = [value.Id, value.Name, value.Account.Name, value.AccountId, value.Amount, value.CreatedDate, value.CloseDate, value.StageName, value.ExpectedRevenue];
-                try {
-                    database.query(sqlOpportunity, opportunityValues, (err) => {
-                        if (err) throw err;
-                        console.log("success inserting to SalesForceOpportunity");
-                    });
-                } catch (err) {
-                    console.log('Error Occurred in opportunity.foreach loop, Message: ' + err);
-                }
-
+                database.query(sqlOpportunity, opportunityValues).catch(e => {
+                    console.log("Error in inserting into SalesForceOpportunity, Message: " + e);
+                });
+                console.log("success inserting to SalesForceOpportunity");
             });
-            console.log(newDataOpportunity + " There is new Data to Opportunity");
-            console.log(newDataContact + " There is new Data to Contacts");
-            if (newDataContact) { //only update time if there is new data
-                contactsSyncTime = new Date().toISOString();
-                let sqlContact = 'Update SyncTime Set Time = ? WHERE Name = "SalesForceContact" ';
-                database.query(sqlContact, contactsSyncTime, (err) => {
-                    if (err) throw err;
-                    console.log("success updating SyncTime for SalesForceContact");
-                });
-            }
-            if (newDataOpportunity) {
-                opportunitySyncTime = new Date().toISOString();
+        }).then(() => {
+            if (newDataOpportunity) { //only update time if there is new data
+                console.log("There is new Data for Opportunity");
                 let sqlOpportunity = 'Update SyncTime Set Time = ? WHERE Name = "SalesForceOpportunity" ';
-                database.query(sqlOpportunity, opportunitySyncTime, (err) => {
-                    if (err) throw err;
-                    console.log("success updating SyncTime for SalesForceOpportunity ");
+                database.query(sqlOpportunity, currentTime).catch(e => {
+                    console.log("Error updating SyncTime for SalesForceOpportunity, Message: " + e);
                 });
+                console.log("success updating SyncTime for SalesForceOpportunity");
             }
+        }).catch(e => {
+            console.log("Error caught in final catch block for Opportunity, Message: " + e);
         });
+        return "SalesForce.js is running";
     },
 });
