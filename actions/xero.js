@@ -1,9 +1,10 @@
 "use strict";
 let datafire = require('datafire');
 const db = require('./setup');
-
-
 let xero = require('@datafire/xero').actions;
+let config = require('./config.json');
+let database = new db(config);
+// Using Oauth 1.0; can't use webAuth to authenticate
 module.exports = new datafire.Action({
   handler: async (input, context) => {
     console.log('in xero');
@@ -24,36 +25,37 @@ module.exports = new datafire.Action({
     result[0].Accounts.forEach(element => {
       let sql = 'INSERT INTO XeroAccounts (Name, AccountID, Description, Status, BankAccountType,Type,Class,Currency,UpdatedDate) VALUES (?,?,?,?,?,?,?,?,?)';
       let values = [element.Name, element.AccountID, element.Description, element.Status, element.BankAccountType, element.Type, element.Class, element.CurrencyCode, element.UpdatedDateUTC];
-      db.query(sql, values, (err) => {
-        if (err) throw err;
+        database.query(sql, values).catch(e =>{
+          console.log("Error inserting into XeroAccounts , Message: " + e);
       });
+        console.log("Successful inserting into XeroAccounts");
     });
 
     result[1].Contacts.forEach(element => {
       let sql = 'INSERT INTO XeroContacts (ContactId, CompanyName, ContactStatus, FirstName, LastName, Email,SkypeUserName, IsSupplier,IsCustomer,UpdatedDateUTC) VALUES (?,?,?,?,?,?,?,?,?,?)';
       let values = [element.ContactID, element.Name, element.ContactStatus, element.FirstName, element.LastName, element.EmailAddress, element.SkypeUserName, element.IsSupplier, element.IsCustomer, element.UpdatedDateUTC];
-      db.query(sql, values, (err) => {
-        if (err) throw err;
-        console.log("sucess inserting contacts to XeroContacts");
-      });
+        database.query(sql, values).catch(e =>{
+        });
+        console.log("Successful inserting into XeroContacts");
+
       element.Addresses.forEach(address => {
         let addressSql = 'INSERT INTO XeroContactAddresses (ContactId, AddressType, AddressLine1,City, Region,PostalCode,Country,AttentionTo) VALUES (?,?,?,?,?,?,?,?)';
         let addressValues = [element.ContactID, address.AddressType, address.AddressLine1, address.City, address.Region, address.PostalCode, address.Country, address.AttentionTo];
-        db.query(addressSql, addressValues, (err) => {
-          if (err) throw err;
-          console.log("sucess inserting addresses to XeroContactAddresses");
-        });
+          database.query(addressSql, addressValues).catch(e =>{
+              console.log("Error inserting into XeroContactAddresses , Message: " + e);
+          });
+          console.log("Successful inserting into XeroContactAddresses");
       });
+
       element.Phones.forEach(phone => {
         let phoneSql = 'INSERT INTO XeroContactPhones (ContactId, PhoneType, PhoneNumber,PhoneAreaCode, PhoneCountryCode ) VALUES (?,?,?,?,?)';
         let phoneValues = [element.ContactID, phone.PhoneType, phone.PhoneNumber, phone.PhoneAreaCode, phone.PhoneCountryCode];
-        db.query(phoneSql, phoneValues, (err) => {
-          if (err) throw err;
-          console.log("sucess inserting phoneInfo to XeroContactPhones");
+        database.query(phoneSql, phoneValues).catch( e =>{
+            console.log("Error inserting into XeroContactPhones , Message: " + e);
         });
+          console.log("Successful inserting into XeroContactPhones");
       });
     });
-    db.end();
     return result;
   },
 });

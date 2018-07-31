@@ -13,7 +13,11 @@ actions:
   magento: ./actions/magento.js
   stripe: ./actions/stripe.js
   quickbooks: ./actions/quickbooks.js
+  webAuth: ./actions/webAuth.js
 paths:
+  /webAuth:
+    get:
+      action: webAuth
   /quickbooks:
     get:
       action: quickbooks

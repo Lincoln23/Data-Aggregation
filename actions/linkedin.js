@@ -1,13 +1,13 @@
 "use strict";
 let datafire = require('datafire');
-
 let linkedin = require('@datafire/linkedin').actions;
+//Access token last 60 days
 module.exports = new datafire.Action({
   inputs: [{
     // id is found in the company's management page
     type: "string",
     title: "id",
-    default: "id"
+      default: ""
   }, {
     type: "string",
     title: "filter",

@@ -30,22 +30,22 @@ class Database {
 
 module.exports = Database;
 
-
- axios.all([
-   axios.get('http://localhost:3000/quickbooks'),
-   axios.get('http://localhost:3000/getsheet'),
-   axios.get('http://localhost:3000/linkedin'),
-   axios.get('http://localhost:3000/gmail'),
-   axios.get('http://localhost:3000/calendar'),
-   axios.get('http://localhost:3000/salesforce'),
-   axios.get('http://localhost:3000/xero'),
-   axios.get('http://localhost:3000/trello'),
-   axios.get('http://localhost:3000/mailchimp'),
-   axios.get('http://localhost:3000/analytics'),
- ]).catch(error => {
-   console.log(error);
- });
- 
+// Invokes all the end points at the beginning of the program
+//  axios.all([
+//    axios.get('http://localhost:3000/quickbooks'),
+//    axios.get('http://localhost:3000/getsheet'),
+//    axios.get('http://localhost:3000/linkedin'),
+//    axios.get('http://localhost:3000/gmail'),
+//    axios.get('http://localhost:3000/calendar'),
+//    axios.get('http://localhost:3000/salesforce'),
+//    axios.get('http://localhost:3000/xero'),
+//    axios.get('http://localhost:3000/trello'),
+//    axios.get('http://localhost:3000/mailchimp'),
+//    axios.get('http://localhost:3000/analytics'),
+//  ]).catch(error => {
+//    console.log(error);
+//  });
+//
 
 
 

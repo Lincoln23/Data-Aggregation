@@ -17,6 +17,9 @@
     "node-quickbooks": "^2.0.24",
     "simple-oauth2": "^2.2.0"
   },
-  "name": "Data-Integrations",
-  "version": "1.0.0"
+  "name": "data_integration",
+  "version": "1.0.0",
+  "devDependencies": {
+    "datafire": "latest"
+  }
 }

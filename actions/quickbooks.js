@@ -1,8 +1,8 @@
-const QuickBooks = require('node-quickbooks')
+const QuickBooks = require('node-quickbooks');
 const datafire = require('datafire');
 
 let qbo = new QuickBooks('', //client id
-  '', //secret id
+    '', //secret id
   '', //OAuth Token
   false, //token secret, dont need or oauth2
   193514791715979, //company id
@@ -19,19 +19,19 @@ module.exports = new datafire.Action({
 
     const accounts = new Promise((resolve, reject) => {
       qbo.findAccounts((err, account) => {
-        if (err) reject(err)
+          if (err) reject(err);
         else resolve(account)
       })
     });
     const bills = new Promise((resolve, reject) => {
       qbo.findBills((err, biil) => {
-        if (err) reject(err)
+          if (err) reject(err);
         else resolve(biil)
       })
     });
     const invoices = new Promise((resolve, reject) => {
       qbo.findInvoices((err, invoice) => {
-        if (err) reject(err)
+          if (err) reject(err);
         else resolve(invoice)
       })
     });

@@ -58,4 +58,6 @@ typings/
 .env
 
 DataFire-accounts.yml
-
+.idea/
+SalesForce.txt
+actions/config.json

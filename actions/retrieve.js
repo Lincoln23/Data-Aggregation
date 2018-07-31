@@ -44,7 +44,6 @@ module.exports = new datafire.Action({
             console.log("Added id: " + json.id);
           });
         });
-        db.end();
         return rows;
       })
   },

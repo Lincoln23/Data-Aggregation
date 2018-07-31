@@ -3,16 +3,12 @@ const datafire = require('datafire');
 const db = require('./setup.js');
 let fs = require('fs');
 let salesforce = require('@datafire/salesforce').actions;
+let config = require('./config.json');
+
 
 module.exports = new datafire.Action({
     handler: async (input, context) => {
         let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format
-        const config = {
-            host: "host",
-            user: "user",
-            password: "pass",
-            database: "db"
-        };
         let database = new db(config);
         let newDataContact = 0; // set to true only if there is new data and it will update the last synced time
         let newDataOpportunity = 0; // set to true only if there is new data and it will update the last synced time
