@@ -3,7 +3,8 @@ let datafire = require('datafire');
 let google_sheets = require('@datafire/google_sheets').actions;
 let inputs = require('./create').inputs;
 const db = require('./setup.js');
-
+let config = require('./config.json');
+let database = new db(config);
 
 function getColumnLetter(idx) {
   return String.fromCharCode(idx + 64);
@@ -35,14 +36,14 @@ module.exports = new datafire.Action({
         });
 
         rows.forEach(json => {
-          let sql = 'INSERT INTO Contacts (Name, Organization, Phone, Email, Location) VALUES (?,?,?,?,?)';
+            let sql = 'INSERT INTO GoogeSheetsContacts (Name, Organization, Phone, Email, Location) VALUES (?,?,?,?,?)';
           console.log(json.name, json.Organiztion, json.phone, json.Email, json.City);
           let values = [json.name, json.Organiztion, json.phone, json.Email, json.City];
           console.log(values);
-          db.query(sql, values, (err, result) => {
-            if (err) throw err;
-            console.log("Added id: " + json.id);
-          });
+            database.query(sql, values).catch(e => {
+                console.log("Error inserting into GoogeSheetsContacts, Message: " + e);
+            });
+            console.log("Successful inserting into GoogeSheetsContacts");
         });
         return rows;
       })
