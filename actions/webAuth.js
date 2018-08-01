@@ -2,13 +2,20 @@
 let datafire = require('datafire');
 const request = require('request');
 let express = require('express');
+const db = require('./setup');
+let config = require('./config.json');
+let database = new db(config);
 let app = express();
 let webUrl = require('../auth');
 app.listen(3333, () => console.log('Listening on port 3333'));
 
-let state;
+let state = null;
+let integration;
+let clientId;
+let clientSecret;
 const OAUTH_PORT = 3333;
 const redirect_url = 'http://localhost:' + OAUTH_PORT;
+
 
 let getOAuthURL = (clientId, redirect, integration) => {
 
@@ -38,6 +45,7 @@ let getOAuthURL = (clientId, redirect, integration) => {
 };
 
 let postRequest = (code, id, secret, redirect_url, state2, integration) => {
+    console.log(integration);
     let tokenUrl = webUrl[integration].token;
     if (state == state2) {
         let options = {
@@ -59,14 +67,36 @@ let postRequest = (code, id, secret, redirect_url, state2, integration) => {
         };
         request(options, function (error, response, body) {
             if (error) throw new Error(error);
-            console.log(body);
-
-            //sql...
-
-
-            //redirect
+            let jsonBody = JSON.parse(body);
+            if (jsonBody.error) {
+                console.log(jsonBody.error);
+            } else {
+                console.log(jsonBody.expires_in);
+                let date = null;
+                if (jsonBody.expires_in != undefined) {
+                    date = expiryDate(jsonBody.expires_in);
+                }
+                let sql = 'INSERT INTO AccessKeys (Name, AccessToken, RefreshToken, Expiry, ExpiryDate) VALUES (?,?,?,?,?)';
+                let values = [integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date];
+                database.query(sql, values).catch(err => {
+                    console.log("Error inserting into AccessKeys, Message: " + err);
+                });
+                console.log("success inserting into AccessKeys");
+            }
         });
     }
+};
+
+let expiryDate = (seconds) => {
+    let date = new Date();
+    let hours = Math.floor(seconds / 3600);
+    if (hours < 24) {
+        date.setHours(date.getHours() + hours);
+    } else {
+        let days = Math.floor(hours / 24);
+        date.setDate(date.getDate() + days)
+    }
+    return date.toISOString();
 };
 module.exports = new datafire.Action({
     inputs: [{
@@ -84,16 +114,20 @@ module.exports = new datafire.Action({
         type: "string",
         title: "client_id",
     }],
+
     handler: (input) => {
+        integration = input.integration;
+        clientId = input.client_id;
+        clientSecret = input.client_secret;
+        console.log(integration);
         let code = null;
-        let state2;
+        let state2 = null;
         let url = getOAuthURL(input.client_id, redirect_url, input.integration);
         app.get('/', (req, res) => {
-            console.log("Access code is: " + req.query.code);
-            code = req.query.code;
-            state2 = req.query.state;
-            postRequest(code, input.client_id, input.client_secret, redirect_url, state2, input.integration);
-            res.end();
+            code = decodeURIComponent(req.query.code);
+            state2 = decodeURIComponent(req.query.state);
+            postRequest(code, clientId, clientSecret, redirect_url, state2, integration);
+            res.send("Done!"); // equivalent to res.write + res.end
         });
         return {
             "authUrl": url,
