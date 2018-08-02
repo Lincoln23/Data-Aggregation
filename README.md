@@ -1,7 +1,7 @@
 ## Data-Integration
 
 
-An automated data integration system that pulls data from 10+ services on a set schedule and stores the data into a MySQL database
+An automated data integration system that authorizes the user and seamlessly updates/pulls data from 10+ services on a set schedule. Data is stored into a MySQL database
 
 Built using:
   - [DataFire][Datafire]
