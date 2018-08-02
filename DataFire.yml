@@ -1,6 +1,6 @@
 actions:
   create: ./actions/create.js
-  retrieve: ./actions/retrieve.js
+  retrieve: ./actions/sheets.js
   linkedin: ./actions/linkedin.js
   facebook: ./actions/facebook.js
   gmail: ./actions/gmail.js
@@ -14,7 +14,11 @@ actions:
   stripe: ./actions/stripe.js
   quickbooks: ./actions/quickbooks.js
   webAuth: ./actions/webAuth.js
+  refreshToken: ./actions/refreshToken.js
 paths:
+  /refreshToken:
+    get:
+      action: refreshToken
   /webAuth:
     get:
       action: webAuth
@@ -74,6 +78,9 @@ options:
   cors: true
 tests: {}
 tasks:
+  refreshToken:
+    schedule: cron(*/15 * * * *)
+    action: refreshToken
   googles_sheets:
     schedule: cron(0 */12 * * *)
     action: retrieve
@@ -94,7 +101,7 @@ tasks:
     accounts: {}
     input: {}
   salesforce:
-    schedule: cron(0 */12 * * *)
+    schedule: cron(* * * * *)
     action: salesforce
     accounts: {}
   task5:
