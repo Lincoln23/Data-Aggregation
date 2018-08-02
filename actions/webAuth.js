@@ -7,6 +7,7 @@ let config = require('./config.json');
 let database = new db(config);
 let app = express();
 let webUrl = require('../auth');
+let moment = require('moment');
 app.listen(3333, () => console.log('Listening on port 3333'));
 
 let state = null;
@@ -44,8 +45,7 @@ let getOAuthURL = (clientId, redirect, integration) => {
     return url;
 };
 
-let postRequest = (code, id, secret, redirect_url, state2, integration) => {
-    console.log(integration);
+let access = (code, id, secret, redirect_url, state2, integration) => {
     let tokenUrl = webUrl[integration].token;
     if (state == state2) {
         let options = {
@@ -62,7 +62,7 @@ let postRequest = (code, id, secret, redirect_url, state2, integration) => {
                     client_id: id,
                     client_secret: secret,
                     redirect_uri: redirect_url,
-                    grant_type: 'authorization_code'
+                    grant_type: "authorization_code",
                 }
         };
         request(options, function (error, response, body) {
@@ -71,13 +71,13 @@ let postRequest = (code, id, secret, redirect_url, state2, integration) => {
             if (jsonBody.error) {
                 console.log(jsonBody.error);
             } else {
-                console.log(jsonBody.expires_in);
                 let date = null;
                 if (jsonBody.expires_in != undefined) {
                     date = expiryDate(jsonBody.expires_in);
                 }
-                let sql = 'INSERT INTO AccessKeys (Name, AccessToken, RefreshToken, Expiry, ExpiryDate) VALUES (?,?,?,?,?)';
-                let values = [integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date];
+                console.log(date);
+                let sql = 'INSERT INTO AccessKeys (Name, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+                let values = [integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
                 database.query(sql, values).catch(err => {
                     console.log("Error inserting into AccessKeys, Message: " + err);
                 });
@@ -86,6 +86,7 @@ let postRequest = (code, id, secret, redirect_url, state2, integration) => {
         });
     }
 };
+
 
 let expiryDate = (seconds) => {
     let date = new Date();
@@ -116,17 +117,21 @@ module.exports = new datafire.Action({
     }],
 
     handler: (input) => {
-        integration = input.integration;
+        moment.utc();
+        let date1 = new Date().toISOString();
+        let date2 = "2018-09-29T15:49:50.309Z";
+        if (date1)
+            integration = input.integration;
         clientId = input.client_id;
         clientSecret = input.client_secret;
-        console.log(integration);
+        console.log("Web Oauth integration for: " + integration);
         let code = null;
         let state2 = null;
         let url = getOAuthURL(input.client_id, redirect_url, input.integration);
         app.get('/', (req, res) => {
             code = decodeURIComponent(req.query.code);
             state2 = decodeURIComponent(req.query.state);
-            postRequest(code, clientId, clientSecret, redirect_url, state2, integration);
+            access(code, clientId, clientSecret, redirect_url, state2, integration);
             res.send("Done!"); // equivalent to res.write + res.end
         });
         return {

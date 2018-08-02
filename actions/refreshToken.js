@@ -47,8 +47,8 @@ let refresh = (id, secret, refreshToken, integration) => {
             if (jsonBody.expires_in != undefined) {
                 date = expiryDate(jsonBody.expires_in);
             }
-            let sql = 'UPDATE AccessKeys SET AccessToken = ?, RefreshToken = ? ,Expiry = ? ,ExpiryDate = ? WHERE Name = ?';
-            let values = [jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, integration];
+            let sql = 'INSERT INTO AccessKeys (Name, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+            let values = [integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
             database.query(sql, values).catch(err => {
                 console.log("Error updating refreshTokens in AccessKeys, Message: " + err);
             });
