@@ -4,10 +4,15 @@ const datafire = require('datafire');
 let webUrl = require('../auth');
 const db = require('./setup.js');
 let config = require('./config.json');
+let integration;
+let refreshToken;
+let clientID;
+let clientSecret;
 
 //varchar length was too short, didnt get all
 let database = new db(config);
 let refresh = (id, secret, refreshToken, integration) => {
+    console.log(integration);
     let tokenUrl = webUrl[integration].refresh;
     console.log(id);
     console.log(secret);
@@ -32,8 +37,10 @@ let refresh = (id, secret, refreshToken, integration) => {
     };
     request(options, function (error, response, body) {
         if (error) throw new Error(error);
+        console.log("this is body down here");
         console.log(body);
         let jsonBody = JSON.parse(body);
+        console.log("here");
         console.log(jsonBody.access_token);
         console.log(jsonBody.refresh_token);
         console.log(jsonBody.expires_in);
@@ -71,10 +78,6 @@ let expiryDate = (seconds) => {
 
 module.exports = new datafire.Action({
     handler: () => {
-        let integration = null;
-        let refreshToken = null;
-        let clientID = null;
-        let clientSecret = null;
         database.query("SELECT Name, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15").then(result => {
             console.log(result);
             result.forEach(value => {
