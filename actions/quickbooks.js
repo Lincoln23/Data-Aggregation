@@ -1,22 +1,37 @@
 const QuickBooks = require('node-quickbooks');
 const datafire = require('datafire');
-
-let qbo = new QuickBooks('', //client id
-    '', //secret id
-  '', //OAuth Token
-  false, //token secret, dont need or oauth2
-  193514791715979, //company id
-  true, // use the sandbox?
-  true, // enable debugging?
-  23, // set minorversion
-  '2.0', //Oauth Version
-  '' //Refresh Token
-);
+const db = require('./setup.js');
+let config = require('./config.json');
+let qbo;
 
 module.exports = new datafire.Action({
-  handler: async (input, context) => {
-    console.log('in quickbooks');
+    inputs: [{
+        // company id
+        type: "string",
+        title: "id",
+        default: "193514791715979"
+    }],
+    handler: async (input, context) => {
+        let database = new db(config);
+        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'quickbooks'").then(result => {
+            result = result[0];
+            console.log(result);
+            qbo = new QuickBooks(result.ClientId, //client id
+                result.ClientSecret, //client secret
+                result.AccessToken, //OAuth Token
+                false, //token secret, dont need or oauth2
+                input.id, //company id
+                true, // use the sandbox?
+                true, // enable debugging?
+                23, // set minorversion
+                '2.0', //Oauth Version
+                result.RefreshToken //Refresh Token``
+            );
+        }).catch(e => {
+            console.log("Error selecting from credentials for quickbooks, Msg: " + e);
+        });
 
+    console.log('in quickbooks');
     const accounts = new Promise((resolve, reject) => {
       qbo.findAccounts((err, account) => {
           if (err) reject(err);

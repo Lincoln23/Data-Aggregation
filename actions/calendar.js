@@ -1,7 +1,8 @@
 "use strict";
 let datafire = require('datafire');
-
-let google_calendar = require('@datafire/google_calendar').actions;
+const db = require('./setup.js');
+let config = require('./config.json');
+let google_calendar;
 module.exports = new datafire.Action({
   inputs: [{
     type: "string",
@@ -21,6 +22,18 @@ module.exports = new datafire.Action({
     default: "UTC"
   }],
   handler: async (input, context) => {
+      let database = new db(config);
+      await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'google_calendar'").then(result => {
+          result = result[0];
+          google_calendar = require('@datafire/google_calendar').create({
+              access_token: result.AccessToken,
+              refresh_token: result.RefreshToken,
+              client_id: result.ClientId,
+              client_secret: result.ClientSecret,
+          });
+      }).catch(e => {
+          console.log("Error selecting from credentials for google_calendar, Msg: " + e);
+      });
     console.log('in calendar');
     //return all events in the calendar, can add addition timeMax and timeMin params in RFC3339 timeStamp
     const events = new Promise((resolve, reject) => {

@@ -9,9 +9,8 @@ let salesforce;
 module.exports = new datafire.Action({
     handler: async (input, context) => {
         let database = new db(config);
-        database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'salesforce'").then(result => {
+        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'salesforce'").then(result => {
             result = result[0];
-            console.log(result);
             salesforce = require('@datafire/salesforce').create({
                 access_token: result.AccessToken,
                 refresh_token: result.RefreshToken,
@@ -55,7 +54,6 @@ module.exports = new datafire.Action({
 
         //----------------------------------------Query for Contacts -------------------------------------------//
         database.query('SELECT TIME AS Current FROM SyncTime WHERE NAME = "SalesForceContact"').then(result => {
-            console.log(result);
             contactsSyncTime = result[0].Current;
             console.log("Sync Time for contactsSyncTime:" + contactsSyncTime);
             return contactsSyncTime;

@@ -1,9 +1,23 @@
 "use strict";
 let datafire = require('datafire');
+const db = require('./setup.js');
+let config = require('./config.json');
+let google_analytics;
 
-let google_analytics = require('@datafire/google_analytics').actions;
 module.exports = new datafire.Action({
   handler: async (input, context) => {
+      let database = new db(config);
+      await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'google_analytics'").then(result => {
+          result = result[0];
+          google_analytics = require('@datafire/google_analytics').create({
+              access_token: result.AccessToken,
+              refresh_token: result.RefreshToken,
+              client_id: result.ClientId,
+              client_secret: result.ClientSecret,
+          });
+      }).catch(e => {
+          console.log("Error selecting from credentials for google_analytics, Msg: " + e);
+      });
     console.log('in analytics');
     const getData = new Promise((resolve, reject) => {
       resolve(google_analytics.data.ga.get({

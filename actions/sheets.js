@@ -17,11 +17,10 @@ module.exports = new datafire.Action({
         title: "spreadSheetId",
         default: "1G_LTW3K-0ta_ZRMV0KPNSHi4-2H8dUE6TO7yTV-2Tus"
     }],
-    handler: (input, context) => {
+    handler: async (input, context) => {
         let database = new db(config);
-        database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'google_sheets'").then(result => {
+        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'google_sheets'").then(result => {
             result = result[0];
-            console.log(result);
             google_sheets = require('@datafire/google_sheets').create({
                 access_token: result.AccessToken,
                 refresh_token: result.RefreshToken,
@@ -31,7 +30,6 @@ module.exports = new datafire.Action({
         }).catch(e => {
             console.log("Error selecting from credentials for google_sheets, Msg: " + e);
         });
-        console.log(context);
         console.log('in sheets');
         let startRow = 1;
         let endRow = 9999;

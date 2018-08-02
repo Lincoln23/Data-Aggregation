@@ -7,7 +7,6 @@ let config = require('./config.json');
 let database = new db(config);
 let app = express();
 let webUrl = require('../auth');
-let moment = require('moment');
 app.listen(3333, () => console.log('Listening on port 3333'));
 
 let state = null;
@@ -117,11 +116,7 @@ module.exports = new datafire.Action({
     }],
 
     handler: (input) => {
-        moment.utc();
-        let date1 = new Date().toISOString();
-        let date2 = "2018-09-29T15:49:50.309Z";
-        if (date1)
-            integration = input.integration;
+        integration = input.integration;
         clientId = input.client_id;
         clientSecret = input.client_secret;
         console.log("Web Oauth integration for: " + integration);

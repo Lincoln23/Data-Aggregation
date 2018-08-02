@@ -1,15 +1,29 @@
 "use strict";
 let datafire = require('datafire');
+const db = require('./setup.js');
+let config = require('./config.json');
+let google_gmail;
 
-let google_gmail = require('@datafire/google_gmail').actions;
 module.exports = new datafire.Action({
   inputs: [{
     type: "integer",
     title: "limit",
     minimum: 1,
-    default: 10
+      default: 100
   }],
   handler: async (input, context) => {
+      let database = new db(config);
+      await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'gmail'").then(result => {
+          result = result[0];
+          google_gmail = require('@datafire/google_gmail').create({
+              access_token: result.AccessToken,
+              refresh_token: result.RefreshToken,
+              client_id: result.ClientId,
+              client_secret: result.ClientSecret,
+          });
+      }).catch(e => {
+          console.log("Error selecting from credentials for gmail, Msg: " + e);
+      });
     console.log('in gmail');
     //returns message ids
     const listMessagesResponse = await google_gmail.users.messages.list({
