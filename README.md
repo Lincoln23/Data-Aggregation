@@ -73,9 +73,9 @@ With Json Format
 {
  	"name": "name",
  	"Email": "email",
- 	"phone-number": "phone number",
+ 	"phone": "phone number",
  	"City": "city",
- 	"Organization": "organization"  
+ 	"organization": "organization"  
 }
 ```
 
