@@ -2,14 +2,27 @@
 const datafire = require('datafire');
 const db = require('./setup.js');
 let fs = require('fs');
-let salesforce = require('@datafire/salesforce').actions;
 let config = require('./config.json');
+let salesforce;
 
-
+// about expiry https://salesforce.stackexchange.com/questions/73512/oauth-access-token-expiration
 module.exports = new datafire.Action({
     handler: async (input, context) => {
-        let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format
         let database = new db(config);
+        database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'salesforce'").then(result => {
+            result = result[0];
+            console.log(result);
+            salesforce = require('@datafire/salesforce').create({
+                access_token: result.AccessToken,
+                refresh_token: result.RefreshToken,
+                client_id: result.ClientId,
+                client_secret: result.ClientSecret,
+            });
+        }).catch(e => {
+            console.log("Error selecting from credentials for salesforce, Msg: " + e);
+        });
+
+        let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format
         let newDataContact = 0; // set to true only if there is new data and it will update the last synced time
         let newDataOpportunity = 0; // set to true only if there is new data and it will update the last synced time
         console.log('in salesforce');
