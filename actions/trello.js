@@ -1,13 +1,22 @@
 "use strict";
 const datafire = require('datafire');
-const trello = require('@datafire/trello').actions;
-const db = require('./setup');
+const db = require('./setup.js');
 let config = require('./config.json');
-let database = new db(config);
+let trello;
 
 
 module.exports = new datafire.Action({
     handler: async (input, context) => {
+        let database = new db(config);
+        await database.query("SELECT api_key, api_token FROM ApiKeys WHERE Name = 'trello'").then(result => {
+            result = result[0];
+            trello = require('@datafire/trello').create({
+                api_key: result.api_key,
+                api_token: result.api_token
+            });
+        }).catch(e => {
+            console.log("Error selecting from credentials for trello, Msg: " + e);
+        });
         console.log('in trello');
         let result = [];
         // get all available boards to the user
