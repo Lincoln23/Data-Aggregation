@@ -12,14 +12,42 @@ Built using:
 
   - By default the service is hosted on port **3000**
   - Start server by ` datafire serve --tasks true ` or by `datafire serve --port {port number}`
+ 
+ 
+**Authorization**
+  - **OAuth 2.0 code grant flow**
+  - **Setup**:
+    -  *Google Apps (Gmail,Calendar,Sheets and Analytics)*
+        - Create OAuth token at [Google Api Console][Google Api Console]
+        - Enable: `Analytics API`, `Gmail API`, `Google Calendar API` and ` Google Sheets API` in your dashboard
+        - Create Credentials for OAuth Client ID and retrieve your `Client ID` and `Client Secret`
+    - *Linkedin*
+        - Go to [Linkedin Developers][LinkedinApps] and create a new Application
+        - retrieve your `Client ID` and `Client Secret`
+    - *Quickbooks*
+        - Go to [Quickbooks Developer][Quickbooks] and select "Just Start Coding" and check Accounting
+        - retrieve your `Client ID` and `Client Secret`
+    - *SalesForce*
+        - Go to [App Manger][SalesForceApp] and create a new "Connected App"
+        
+ - To authorize send a **Get** request to: 
+  ```sh                       
+http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_secret=${client_secret}
+```
+- Credentials will be save to your SQL database in `Accesskeys` 
+ - `refreshToken.js` will check for tokens that are about to expire and refresh for new access token automatically 
+  - **Api Keys**:
+  - **Setup**:
+    -  *Trello*
+        - Go to [Trello Api][TrelloApi] and retrieve your `Api Key` and `Api Token`
+    - *MailChimp*
+        - Go to [MailChimp][MailChimpApi] to retrieve your `Api Key`
+
 
 **Scheduling**
   - Under `tasks` in `DataFire.yml`
   - Use `Cron` to schedule your tasks, default is set to every 12 hours
- 
-**Authentication**
-  - Most of the actions use **OAuth 2.0 Authorization Code Grant Flow**
-  - run `datafire authenticate {integration name} ` to setup authenication and create `DataFire-accounts.yml`
+
  
 **MySQL** 
   - Set up SQL connection is `Setup.js`
@@ -38,8 +66,11 @@ const connection = mysql.createConnection({
   **Google Sheet**
   Returns data from the spreadsheet mapped to a field and allows users to post data to the spreadsheet
   
+  **Authorization**:
+  - 
+  
   ** **Note** ** You will need to configure the `inputs` JSON array in `create.js` to match the coloumns in your spreadsheet. 
-  I currently have
+  I currently have:
 ```sh                       
 inputs: [{
     title: "name",
@@ -192,8 +223,13 @@ Returns information about accounts, bills, and incvoices
 
 ## Result
   - Response is in **JSON** 
-
-
+  
+   [SalesForceApp]: <https://na72.lightning.force.com/lightning/setup/NavigationMenus/home>
+   [Quickbooks]: <https://developer.intuit.com/v2/ui#/app/startcreate>
+   [TrelloApi]: <https://trello.com/app-key>
+   [MailChimpApi]: <https://us18.admin.mailchimp.com/account/api/>
+   [Google Api Console]: <https://console.developers.google.com/>
+   [LinkedinApps]: <https://www.linkedin.com/developer/apps>
    [Datafire]: <https://app.datafire.io/>
    [Node]:<https://nodejs.org/en/>
    [RDS]: <https://aws.amazon.com/rds/>
