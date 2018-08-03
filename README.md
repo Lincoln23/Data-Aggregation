@@ -42,6 +42,8 @@ http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_s
         - Go to [Trello Api][TrelloApi] and retrieve your `Api Key` and `Api Token`
     - *MailChimp*
         - Go to [MailChimp][MailChimpApi] to retrieve your `Api Key`
+        
+  - You will have to manually enter the Api Keys/Token into the "ApiKeys" Table
 
 
 **Scheduling**
@@ -50,7 +52,7 @@ http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_s
 
  
 **MySQL** 
-  - Set up SQL connection is `Setup.js`
+  - Create connection in "config.json"
   ```sh                       
 const connection = mysql.createConnection({
   host: "host",
@@ -65,10 +67,6 @@ const connection = mysql.createConnection({
 ## Integrations
   **Google Sheet**
   Returns data from the spreadsheet mapped to a field and allows users to post data to the spreadsheet
-  
-  **Authorization**:
-  - 
-  
   ** **Note** ** You will need to configure the `inputs` JSON array in `create.js` to match the coloumns in your spreadsheet. 
   I currently have:
 ```sh                       
