@@ -12,7 +12,9 @@ app.listen(3333, () => console.log('Listening on port 3333'));
 //TODO fix cron, set it to every 15 min, not every 15th minute of the hour
 
 let state = null;
+//FIXME need to have integration,clientId ... variables here or else they won't update in the app.get method;
 let integration;
+let accountName;
 let clientId;
 let clientSecret;
 const OAUTH_PORT = 3333;
@@ -50,7 +52,7 @@ let getOAuthURL = (clientId, redirect, integration) => {
     return url;
 };
 
-let access = (code, id, secret, redirect_url, state2, integration) => {
+let access = (code, id, secret, redirect_url, state2, integration, accountName) => {
     let tokenUrl = webUrl[integration].token;
     if (state == state2) {
         let options = {
@@ -80,8 +82,9 @@ let access = (code, id, secret, redirect_url, state2, integration) => {
                 if (jsonBody.expires_in != undefined) {
                     date = expiryDate(jsonBody.expires_in);
                 }
-                let sql = 'INSERT INTO AccessKeys (Name, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
-                let values = [integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
+                console.log(accountName);
+                let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+                let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
                 database.query(sql, values).catch(err => {
                     console.log("Error inserting into AccessKeys, Message: " + err);
                 });
@@ -120,12 +123,16 @@ module.exports = new datafire.Action({
     }, {
         type: "string",
         title: "client_id",
+    }, {
+        type: "string",
+        title: "accountName"
     }],
 
     handler: async (input, context) => {
         integration = input.integration;
         clientId = input.client_id;
         clientSecret = input.client_secret;
+        accountName = input.accountName;
         console.log("Web Oauth integration for: " + integration);
         let code = null;
         let state2 = null;
@@ -136,7 +143,7 @@ module.exports = new datafire.Action({
         app.get('/', (req, res) => {
             code = decodeURIComponent(req.query.code);
             state2 = decodeURIComponent(req.query.state);
-            access(code, clientId, clientSecret, redirect_url, state2, integration);
+            access(code, clientId, clientSecret, redirect_url, state2, integration, accountName);
             res.send("Done!"); // equivalent to res.write + res.end
         });
         return {

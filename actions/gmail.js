@@ -1,6 +1,6 @@
 "use strict";
 let datafire = require('datafire');
-const db = require('./setup.js');
+const setup = require('./setup.js');
 let config = require('./config.json');
 let google_gmail;
 
@@ -10,10 +10,19 @@ module.exports = new datafire.Action({
     title: "limit",
     minimum: 1,
       default: 100
+  }, {
+      type: "string",
+      title: "accountName",
   }],
   handler: async (input, context) => {
-      let database = new db(config);
-      await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'gmail'").then(result => {
+      try {
+          let contextHost = context.request.headers.host;
+      } catch (e) {
+          console.log("cannot get contextHost");
+      }
+      config.database = await setup.getSchema("abc");
+      let database = new setup.database(config);
+      await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'gmail' AND AccountName= ?", input.accountName).then(result => {
           result = result[0];
           google_gmail = require('@datafire/google_gmail').create({
               access_token: result.AccessToken,

@@ -2,16 +2,18 @@
 let request = require("request");
 const datafire = require('datafire');
 let webUrl = require('../auth');
-const db = require('./setup.js');
+const setup = require('./setup.js');
 let config = require('./config.json');
+
+let database;
 let integration;
+let accountName;
 let refreshToken;
 let clientID;
 let clientSecret;
-
 //varchar length was too short, didnt get all
-let database = new db(config);
-let refresh = (id, secret, refreshToken, integration) => {
+// let database = new db(config);
+let refresh = (accountName, id, secret, refreshToken, integration) => {
     console.log(integration);
     let tokenUrl = webUrl[integration].refresh;
     console.log(id);
@@ -37,13 +39,10 @@ let refresh = (id, secret, refreshToken, integration) => {
     };
     request(options, function (error, response, body) {
         if (error) throw new Error(error);
-        console.log("this is body down here");
-        console.log(body);
         let jsonBody = JSON.parse(body);
-        console.log("here");
-        console.log(jsonBody.access_token);
-        console.log(jsonBody.refresh_token);
-        console.log(jsonBody.expires_in);
+        // console.log(jsonBody.access_token);
+        // console.log(jsonBody.refresh_token);
+        // console.log(jsonBody.expires_in);
         if (jsonBody.error) {
             console.log(jsonBody.error);
         } else {
@@ -54,8 +53,8 @@ let refresh = (id, secret, refreshToken, integration) => {
             if (jsonBody.expires_in != undefined) {
                 date = expiryDate(jsonBody.expires_in);
             }
-            let sql = 'INSERT INTO AccessKeys (Name, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
-            let values = [integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
+            let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+            let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
             database.query(sql, values).catch(err => {
                 console.log("Error updating refreshTokens in AccessKeys, Message: " + err);
             });
@@ -77,15 +76,20 @@ let expiryDate = (seconds) => {
 };
 
 module.exports = new datafire.Action({
-    handler: () => {
-        database.query("SELECT Name, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15").then(result => {
+    handler: async (input, context) => {
+        // console.log(context.request.headers.host);
+        // console.log(context);
+        config.database = await setup.getSchema("abc");
+        database = new setup.database(config);
+        database.query("SELECT AccountName,IntegrationName, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15").then(result => {
             console.log(result);
             result.forEach(value => {
-                integration = value.Name;
+                accountName = value.AccountName;
+                integration = value.IntegrationName;
                 refreshToken = value.RefreshToken;
                 clientID = value.ClientId;
                 clientSecret = value.ClientSecret;
-                refresh(clientID, clientSecret, refreshToken, integration);
+                refresh(accountName, clientID, clientSecret, refreshToken, integration);
             })
         }).catch((err) => {
             console.log("Error selecting refreshTimes from AccessKeys, Message: " + err);
