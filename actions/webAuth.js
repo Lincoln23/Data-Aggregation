@@ -2,12 +2,14 @@
 let datafire = require('datafire');
 const request = require('request');
 let express = require('express');
-const db = require('./setup');
+const setup = require('./setup');
 let config = require('./config.json');
-let database = new db(config);
+let database;
 let app = express();
 let webUrl = require('../auth');
 app.listen(3333, () => console.log('Listening on port 3333'));
+
+//TODO fix cron, set it to every 15 min, not every 15th minute of the hour
 
 let state = null;
 let integration;
@@ -16,9 +18,8 @@ let clientSecret;
 const OAUTH_PORT = 3333;
 const redirect_url = 'http://localhost:' + OAUTH_PORT;
 
-
+//TODO multiple account support
 let getOAuthURL = (clientId, redirect, integration) => {
-
     let scope = webUrl[integration].scopes;
     let url = webUrl[integration].code;
     state = Math.random();
@@ -32,14 +33,19 @@ let getOAuthURL = (clientId, redirect, integration) => {
                 temp += key + ' ';
             }
         }
-        url += '&scope=' + encodeURIComponent(temp);
+        if (integration == "hubspot") { // it won't work unless the addition space (%20) is removed at the end of the scope parameter
+            let str = encodeURIComponent(temp).toString();
+            str = str.slice(0, -3);
+            url += '&scope=' + str;
+        } else {
+            url += '&scope=' + encodeURIComponent(temp);
+        }
+
     }
-    if (integration == 'gmail' || integration == 'google_sheets' || integration == 'google_calendar' || integration == 'google_analytics') {
-        // FIXME: google hack - no refresh token unless these parameters are included
+    if (integration == 'gmail' || integration == 'google_sheets' || integration == 'google_calendar' || integration == 'google_analytics') { //this is need for google products to get refresh tokens
         url += '&access_type=offline';
         url += '&approval_prompt=force';
     }
-
     url += '&state=' + encodeURIComponent(state);
     return url;
 };
@@ -74,7 +80,6 @@ let access = (code, id, secret, redirect_url, state2, integration) => {
                 if (jsonBody.expires_in != undefined) {
                     date = expiryDate(jsonBody.expires_in);
                 }
-                console.log(date);
                 let sql = 'INSERT INTO AccessKeys (Name, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
                 let values = [integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
                 database.query(sql, values).catch(err => {
@@ -98,6 +103,8 @@ let expiryDate = (seconds) => {
     }
     return date.toISOString();
 };
+
+
 module.exports = new datafire.Action({
     inputs: [{
         type: "string",
@@ -115,13 +122,16 @@ module.exports = new datafire.Action({
         title: "client_id",
     }],
 
-    handler: (input) => {
+    handler: async (input, context) => {
         integration = input.integration;
         clientId = input.client_id;
         clientSecret = input.client_secret;
         console.log("Web Oauth integration for: " + integration);
         let code = null;
         let state2 = null;
+        console.log(context.request.headers.host);
+        config.database = await setup.getSchema("abc");
+        database = new setup.database(config);
         let url = getOAuthURL(input.client_id, redirect_url, input.integration);
         app.get('/', (req, res) => {
             code = decodeURIComponent(req.query.code);

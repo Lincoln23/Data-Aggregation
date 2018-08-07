@@ -15,7 +15,11 @@ actions:
   quickbooks: ./actions/quickbooks.js
   webAuth: ./actions/webAuth.js
   refreshToken: ./actions/refreshToken.js
+  hubspot: ./actions/hubspot.js
 paths:
+  /hubspot:
+    get:
+      action: hubspot
   /refreshToken:
     get:
       action: refreshToken
@@ -101,7 +105,7 @@ tasks:
     accounts: {}
     input: {}
   salesforce:
-    schedule: cron(* * * * *)
+    schedule: cron(0 */12 * * *)
     action: salesforce
     accounts: {}
   task5:
