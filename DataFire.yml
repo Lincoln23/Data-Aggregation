@@ -16,7 +16,11 @@ actions:
   webAuth: ./actions/webAuth.js
   refreshToken: ./actions/refreshToken.js
   hubspot: ./actions/hubspot.js
+  databaseQuery: ./actions/databaseQuery.js
 paths:
+  /databaseQuery:
+    get:
+      action: databaseQuery
   /hubspot:
     get:
       action: hubspot
