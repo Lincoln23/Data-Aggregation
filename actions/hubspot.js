@@ -5,12 +5,16 @@ let config = require('./config.json');
 let hubspot;
 
 module.exports = new datafire.Action({
+    inputs: [{
+        type: "string",
+        title: "accountName",
+    }],
     //TODO figure out how to store context.request.headers.host because it only exist with http request
     handler: async (input, context) => {
         console.log(context.request.headers.host);
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
-        await database.query("SELECT AccessToken FROM AccessKeys WHERE  Name = 'hubspot'").then(result => {
+        await database.query("SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND AccountName = ?", input.accountName).then(result => {
             result = result[0];
             hubspot = new Hubspot({accessToken: result.AccessToken});
         }).catch(e => {

@@ -1,7 +1,7 @@
 "use strict";
 let datafire = require('datafire');
 let linkedin;
-const db = require('./setup.js');
+const setup = require('./setup.js');
 let config = require('./config.json');
 
 
@@ -21,10 +21,15 @@ module.exports = new datafire.Action({
     title: "start",
     // time is in epoch ms
     default: "1516982869000"
+  }, {
+      type: "string",
+      title: "accountName"
   }],
   handler: async (input, context) => {
-      let database = new db(config);
-      await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'linkedin'").then(result => {
+      console.log(context.request.headers.host);
+      config.database = await setup.getSchema("abc");
+      let database = new setup.database(config);
+      await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'linkedin' AND AccountName = ? ", input.accountName).then(result => {
           result = result[0];
           linkedin = require('@datafire/linkedin').create({
               access_token: result.AccessToken,

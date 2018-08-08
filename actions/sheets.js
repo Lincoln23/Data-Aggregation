@@ -2,7 +2,7 @@
 let datafire = require('datafire');
 
 let inputs = require('./create').inputs;
-const db = require('./setup.js');
+const setup = require('./setup.js');
 let config = require('./config.json');
 let google_sheets;
 
@@ -16,10 +16,15 @@ module.exports = new datafire.Action({
         type: "string",
         title: "spreadSheetId",
         default: "1G_LTW3K-0ta_ZRMV0KPNSHi4-2H8dUE6TO7yTV-2Tus"
+    }, {
+        type: "string",
+        title: "accountName"
     }],
     handler: async (input, context) => {
-        let database = new db(config);
-        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'google_sheets'").then(result => {
+        console.log(context.request.headers.host);
+        config.database = await setup.getSchema("abc");
+        let database = new setup.database(config);
+        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND AccountName = ?", input.accountName).then(result => {
             result = result[0];
             google_sheets = require('@datafire/google_sheets').create({
                 access_token: result.AccessToken,

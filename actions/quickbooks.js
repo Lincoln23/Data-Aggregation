@@ -1,6 +1,6 @@
 const QuickBooks = require('node-quickbooks');
 const datafire = require('datafire');
-const db = require('./setup.js');
+const setup = require('./setup.js');
 let config = require('./config.json');
 let qbo;
 
@@ -10,10 +10,16 @@ module.exports = new datafire.Action({
         type: "string",
         title: "id",
         default: "193514791715979"
+    }, {
+        type: "string",
+        title: "accountName"
     }],
     handler: async (input, context) => {
-        let database = new db(config);
-        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'quickbooks'").then(result => {
+        // send a request to your service
+        console.log(context.request.headers.host);
+        config.database = await setup.getSchema("abc");
+        let database = new setup.database(config);
+        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'quickbooks' AND AccountName = ? ", input.accountName).then(result => {
             result = result[0];
             console.log(result);
             qbo = new QuickBooks(result.ClientId, //client id

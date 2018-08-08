@@ -1,15 +1,21 @@
 "use strict";
 const datafire = require('datafire');
-const db = require('./setup.js');
+const setup = require('./setup.js');
 let fs = require('fs');
 let config = require('./config.json');
 let salesforce;
 
 // about expiry https://salesforce.stackexchange.com/questions/73512/oauth-access-token-expiration
 module.exports = new datafire.Action({
+    inputs: [{
+        type: "string",
+        title: "accountName",
+    }],
     handler: async (input, context) => {
-        let database = new db(config);
-        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  Name = 'salesforce'").then(result => {
+        console.log(context.request.headers.host);
+        config.database = await setup.getSchema("abc");
+        let database = new setup.database(config);
+        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'salesforce' and AccountName = ?", input.accountName).then(result => {
             result = result[0];
             salesforce = require('@datafire/salesforce').create({
                 access_token: result.AccessToken,

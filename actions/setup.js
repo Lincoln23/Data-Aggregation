@@ -1,8 +1,9 @@
 const mysql = require('mysql');
 const axios = require('axios');
 
+exports = module.exports;
 
-class Database {
+exports.database = class Database {
     constructor(config) {
         this.connection = mysql.createConnection(config);
     }
@@ -26,26 +27,40 @@ class Database {
             });
         });
     }
-}
+};
 
-module.exports = Database;
 
-// Invokes all the end points at the beginning of the program
-//  axios.all([
-//    axios.get('http://localhost:3000/quickbooks'),
-//    axios.get('http://localhost:3000/getsheet'),
-//    axios.get('http://localhost:3000/linkedin'),
-//    axios.get('http://localhost:3000/gmail'),
-//    axios.get('http://localhost:3000/calendar'),
-//    axios.get('http://localhost:3000/salesforce'),
-//    axios.get('http://localhost:3000/xero'),
-//    axios.get('http://localhost:3000/trello'),
-//    axios.get('http://localhost:3000/mailchimp'),
-//    axios.get('http://localhost:3000/analytics'),
-//  ]).catch(error => {
-//    console.log(error);
-//  });
-//
+exports.getSchema = async (paramter) => {
+    let result = null;
+    let url = "http://localhost:8000";
+    url += '?host=' + paramter;
+    await axios.get(url)
+        .then(response => {
+            result = response.data.database;
+        }).catch(error => {
+            console.log(error);
+        });
+    return result;
+};
+
+
+//TODO Need to add a way to only trigger the endpoints which the user has authorized with, possible solution, put all the authorization in an array and loop through that
+//Invokes all the end points at the beginning of the program
+// axios.all([
+//     axios.get('http://localhost:3000/getsheet'),
+//     axios.get('http://localhost:3000/linkedin'),
+//     axios.get('http://localhost:3000/gmail'),
+//     axios.get('http://localhost:3000/calendar'),
+//     axios.get('http://localhost:3000/salesforce'),
+//     axios.get('http://localhost:3000/trello'),
+//     axios.get('http://localhost:3000/mailchimp'),
+//     axios.get('http://localhost:3000/analytics'),
+//     axios.get('http://localhost:3000/quickbooks'),
+//     // axios.get('http://localhost:3000/xero'),
+// ]).catch(error => {
+//     console.log(error);
+// });
+
 
 
 

@@ -1,14 +1,29 @@
 "use strict";
 const datafire = require('datafire');
-const db = require('./setup.js');
+const setup = require('./setup.js');
 let config = require('./config.json');
 let trello;
 
 
 module.exports = new datafire.Action({
+    inputs: [{
+        type: "string",
+        title: "accountName",
+    }],
     handler: async (input, context) => {
-        let database = new db(config);
-        await database.query("SELECT api_key, api_token FROM ApiKeys WHERE Name = 'trello'").then(result => {
+        let contextHost;
+        try {
+            console.log(typeof context.request.headers.host);
+            if (context.request.headers.host) {
+                console.log("in here");
+                contextHost = context.request.headers.host;
+            }
+        } catch (e) {
+
+        }
+        config.database = await setup.getSchema("abc");
+        let database = new setup.database(config);
+        await database.query("SELECT api_key, api_token FROM ApiKeys WHERE IntegrationName = 'trello' AND AccountName = ?", input.accountName).then(result => {
             result = result[0];
             trello = require('@datafire/trello').create({
                 api_key: result.api_key,

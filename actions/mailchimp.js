@@ -1,15 +1,21 @@
 "use strict";
 let datafire = require('datafire');
-const db = require('./setup');
+const setup = require('./setup');
 let config = require('./config.json');
 let mailchimp;
 
 // dc : "the extension at the end of the api key"
 
 module.exports = new datafire.Action({
+    inputs: [{
+        type: "string",
+        title: "accountName",
+    }],
     handler: async (input, context) => {
-        let database = new db(config);
-        await database.query("SELECT api_key FROM ApiKeys WHERE Name = 'mailchimp'").then(result => {
+        console.log(context.request.headers.host);
+        config.database = await setup.getSchema("abc");
+        let database = new setup.database(config);
+        await database.query("SELECT api_key FROM ApiKeys WHERE IntegrationName = 'mailchimp' AND AccountName = ? ", input.accountName).then(result => {
             result = result[0];
             console.log(result);
             mailchimp = require('@datafire/mailchimp').create({
@@ -96,7 +102,7 @@ module.exports = new datafire.Action({
         }
 
         result.forEach(element => {
-            if (element.Identifier == "List") {
+            if (element.Identifier === "List") {
                 let sqlList = 'INSERT INTO MailChimpLists (ListName, Description,DateCreated,Language, Url) VALUES (?,?,?,?,?)';
                 let listValues = [element.List_Name, element.Permission_reminder, element.Date_created, element.Campaign_defaults.language, element.Url];
                 database.query(sqlList, listValues).catch(e => {
@@ -154,7 +160,7 @@ module.exports = new datafire.Action({
                     console.log("success inserting to MailChimpListLocations");
                 });
 
-            } else if (element.Identifier == "Campaign") {
+            } else if (element.Identifier === "Campaign") {
 
                 let sql = 'INSERT INTO MailChimpCampaign (Name, Create_time, Send_time, Type, Archive_url,Sent_to,Emails_sent,Spam_report,Unsubscribed) VALUES (?,?,?,?,?,?,?,?,?)';
                 let values = [element.Campaign_name, element.Create_time, element.Send_time, element.Type, element.Archive_url, element.Sent_to, element.Emails_sent, element.Spam_report, element.Unsubscribed];
