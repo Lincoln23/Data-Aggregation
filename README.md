@@ -14,7 +14,7 @@ Built using:
   - Start server by ` datafire serve --tasks true ` or by `datafire serve --port {port number}`
  
  
-**Authorization**
+**Authentication**
   - **OAuth 2.0 code grant flow**
   - **Setup**:
     -  *Google Apps (Gmail,Calendar,Sheets and Analytics)*
@@ -36,14 +36,12 @@ http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_s
 ```
 - Credentials will be save to your SQL database in `Accesskeys` 
  - `refreshToken.js` will check for tokens that are about to expire and refresh for new access token automatically 
-  - **Api Keys**:
+  - **Api Keys**
   - **Setup**:
     -  *Trello*
         - Go to [Trello Api][TrelloApi] and retrieve your `Api Key` and `Api Token`
     - *MailChimp*
         - Go to [MailChimp][MailChimpApi] to retrieve your `Api Key`
-        
-  - You will have to manually enter the Api Keys/Token into the "ApiKeys" Table
 
 
 **Scheduling**
@@ -52,7 +50,7 @@ http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_s
 
  
 **MySQL** 
-  - Create connection in "config.json"
+  - Set up SQL connection is `Setup.js`
   ```sh                       
 const connection = mysql.createConnection({
   host: "host",
@@ -62,11 +60,16 @@ const connection = mysql.createConnection({
 });
 ```
   - You will need to update the SQL insert queries for your own database
-
+  - My is setup as such:
+   ![alt text](https://raw.githubusercontent.com/Lincoln23/Data-Integration/master/DataIntegration.png)
 
 ## Integrations
   **Google Sheet**
   Returns data from the spreadsheet mapped to a field and allows users to post data to the spreadsheet
+  
+  **Authorization**:
+  - 
+  
   ** **Note** ** You will need to configure the `inputs` JSON array in `create.js` to match the coloumns in your spreadsheet. 
   I currently have:
 ```sh                       
