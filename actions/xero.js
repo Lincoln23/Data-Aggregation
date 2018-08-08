@@ -1,9 +1,9 @@
 "use strict";
 let datafire = require('datafire');
-const db = require('./setup');
+// const db = require('./setup');
 let xero = require('@datafire/xero').actions;
 let config = require('./config.json');
-let database = new db(config);
+// let database = new db(config);
 // Using Oauth 1.0; can't use webAuth to authenticate
 module.exports = new datafire.Action({
   handler: async (input, context) => {
