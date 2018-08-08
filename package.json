@@ -14,6 +14,7 @@
     "@datafire/xero": "4.1.1",
     "axios": "^0.18.0",
     "hubspot": "^1.3.2",
+    "mongodb": "^3.1.1",
     "mysql": "^2.16.0",
     "node-quickbooks": "^2.0.24",
     "simple-oauth2": "^2.2.0"

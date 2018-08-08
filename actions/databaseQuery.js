@@ -2,58 +2,56 @@
 let datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
-//TODO Mongo,orcale,microsoft sql, postgres
+let MongoClient = require('mongodb').MongoClient;
+//TODO orcale,microsoft sql, postgres
 
-let dbTest = async (host, user, password, type, database, query) => {
-    let res;
-    if (type === "mysql") {
-        let options = {
-            "host": host,
-            "user": user,
-            "password": password,
-            "database": database,
-        };
-        let externalDatabase = new setup.database(options);
-        await externalDatabase.query(query).then(result => {
-            res = result;
+let sqlTest = (host, user, password, database, query) => {
+    let options = {
+        "host": host,
+        "user": user,
+        "password": password,
+        "database": database,
+    };
+    let externalDatabase = new setup.database(options);
+    return new Promise((resolve, reject) => {
+        externalDatabase.query(query).then(result => {
+            resolve(result);
+            externalDatabase.close();
         }).catch(err => {
-            console.log(err);
-            res = err;
+            reject(err);
+            externalDatabase.close();
         });
-        externalDatabase.close();
-    }
-    return res;
+    });
 };
 
-let dbSave = async (host, user, password, type, db, query, context) => {
-    let res;
-    if (type === "mysql") {
-        config.database = await setup.getSchema("abc");
-        let database = new setup.database(config);
-        let options = {
-            "host": host,
-            "user": user,
-            "password": password,
-            "database": db,
-        };
-        let externalDatabase = new setup.database(options);
-        await externalDatabase.query(query).then(result => {
-            res = result;
-            return result;
-        }).then(value => {
-            let everything = JSON.stringify(value);
-            let curDate = new Date();
-            let sql = "INSERT INTO externalDatabase (Date, Everything) VALUES (?,?)";
-            let sqlValue = [curDate, everything];
-            database.query(sql, sqlValue).catch(err => {
-                console.log("Error INSERTING into externalDatabase, Msg: " + err);
+let mongoTest = (host, database, query) => {
+    return new Promise((resolve, reject) => {
+        MongoClient.connect(host, (err, client) => {
+            if (err) {
+                reject(err);
+                client.close();
+            }
+            const dbo = client.db(database);
+            dbo.collection(query).find({}).toArray((err, result) => {
+                if (err) {
+                    reject(err);
+                    client.close();
+                }
+                resolve(result);
+                client.close();
             });
-        }).catch(err => {
-            console.log(err);
-            res = err;
         });
-    }
-    return res;
+    });
+};
+let insertIntoDb = async (result, dbType,) => {
+    config.database = await setup.getSchema("abc");
+    console.log(config);
+    let database = new setup.database(config);
+    let sql = "INSERT INTO externalDatabase (Date, Everything, DatabaseType) VALUES (?,?,?)";
+    let sqlValue = [new Date(), JSON.stringify(result), dbType];
+    database.query(sql, sqlValue).catch(err => {
+        console.log("Error INSERTING into externalDatabase, Msg: " + err);
+    });
 };
 module.exports = new datafire.Action({
     inputs: [{
@@ -85,9 +83,21 @@ module.exports = new datafire.Action({
     handler: async (input, context) => {
         let res;
         if (input.stage === "test") {
-            res = dbTest(input.host, input.user, input.password, input.type, input.database, input.query);
+            if (input.type === "mysql") {
+                res = await sqlTest(input.host, input.user, input.password, input.database, input.query);
+            } else if (input.type === "mongo") {
+                res = await mongoTest(input.host, input.database, input.query);
+            }
         } else if (input.stage === "save") {
-            res = dbSave(input.host, input.user, input.password, input.type, input.database, input.query, context)
+            if (input.type === "mysql") {
+                let result = await sqlTest(input.host, input.user, input.password, input.database, input.query);
+                insertIntoDb(result, input.type);
+            } else if (input.type === "mongo") {
+                let result = await mongoTest(input.host, input.database, input.query);
+                console.log(result);
+                insertIntoDb(result, input.type)
+            }
+
         }
         return res;
     },
