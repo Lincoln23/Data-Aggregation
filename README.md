@@ -11,28 +11,46 @@ Built using:
 ## Usage
 
   - By default the service is hosted on port **3000**
+  - Oauth redirect URL is on hosted on port **3333**
   - Start server by ` datafire serve --tasks true ` or by `datafire serve --port {port number}`
  
  
-**Authentication**
+## **Authorization**
   - **OAuth 2.0 code grant flow**
   - **Setup**:
+  - Specify an `accountName` for each integration to use mutliple accounts
     -  *Google Apps (Gmail,Calendar,Sheets and Analytics)*
         - Create OAuth token at [Google Api Console][Google Api Console]
         - Enable: `Analytics API`, `Gmail API`, `Google Calendar API` and ` Google Sheets API` in your dashboard
         - Create Credentials for OAuth Client ID and retrieve your `Client ID` and `Client Secret`
     - *Linkedin*
         - Go to [Linkedin Developers][LinkedinApps] and create a new Application
+        - set Redirect URL to `https:{Your IP}:3333` 
         - retrieve your `Client ID` and `Client Secret`
+        - retrieve your `CompanyID` in the url of your company's admin page
+             ````sh 
+             https://www.linkedin.com/company/${This Value}/admin 
+             ````
     - *Quickbooks*
         - Go to [Quickbooks Developer][Quickbooks] and select "Just Start Coding" and check Accounting
+        - set Redirect URI to `https:{Your IP}:3333` 
         - retrieve your `Client ID` and `Client Secret`
     - *SalesForce*
         - Go to [App Manger][SalesForceApp] and create a new "Connected App"
+        - Enable `API (Enable OAuth Settings)`
+        - for `Callback URL` put `https:{Your IP}:3333` 
+        - Under `Available OAuth Scopes` select `Full accesss(full)`
+        - Click save at the bottom 
+    - *Hubspot*
+        - login to your [Hubspot Developer account][hubspot]
+        - Select your account
+        - Click `Create application` and select `Public`
+        - Scroll down to retrieve your `Client ID` and `Client Secret`
+        - Under `Scopes` Select `Contacts` .....
         
  - To authorize send a **Get** request to: 
   ```sh                       
-http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_secret=${client_secret}
+http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_secret=${client_secret}&accountName=${account Name}
 ```
 - Credentials will be save to your SQL database in `Accesskeys` 
  - `refreshToken.js` will check for tokens that are about to expire and refresh for new access token automatically 
@@ -50,7 +68,7 @@ http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_s
 
  
 **MySQL** 
-  - Set up SQL connection is `Setup.js`
+  - Set up SQL connection is `actions/config.json`
   ```sh                       
 const connection = mysql.createConnection({
   host: "host",
@@ -60,17 +78,15 @@ const connection = mysql.createConnection({
 });
 ```
   - You will need to update the SQL insert queries for your own database
-  - My is setup as such:
-   ![alt text](https://raw.githubusercontent.com/Lincoln23/Data-Integration/master/DataIntegration.png)
+    - My database is setup as:
+![alt text](https://raw.githubusercontent.com/Lincoln23/Data-Integration/master/DataIntegration.png)
 
 ## Integrations
   **Google Sheet**
   Returns data from the spreadsheet mapped to a field and allows users to post data to the spreadsheet
-  
-  **Authorization**:
-  - 
-  
-  ** **Note** ** You will need to configure the `inputs` JSON array in `create.js` to match the coloumns in your spreadsheet. 
+ 
+  ** **Note** ** You will need to configure the `inputs` JSON array in `create.js` to match the coloumns in your spreadsheet.
+
   I currently have:
 ```sh                       
 inputs: [{
@@ -90,15 +106,16 @@ inputs: [{
     title: "Organization"
     }], 
 ```
-  
+  - `Parameters`
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
   
   **Get** request to:
   ```sh                       
-    http://localhost:3000/getsheet 
+    http://localhost:3000/sheets?accountName=${account Name}
 ```
 **POST** Request to:
 ```sh                       
-http://localhost:3000/postSheet
+http://localhost:3000/postSheet?accountName=${account Name}
 ```
 With Json Format 
 ```sh                       
@@ -117,26 +134,28 @@ Returns the company's statistics and follow history
     - `id`:  Required - Your Company's id (found in the url on the admin page)
     - `filter` Optional - Granularity of statistics. Values `day` or `month`, default is set to `day`
     - `start` Optional - Starting timestamp of when the stats search should begin (milliseconds since epoch), default is set to `1516982869000 ` which is January 26 2018
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
     
 **Get** request to:
   ```sh                       
-    http://localhost:3000/linkedin?id={id}&filter={day or month}&start={start time}
+    http://localhost:3000/linkedin?id={id}&filter={day or month}&start={start time}&accountName=${account Name}
 ```
 Example 
   ```sh                       
-    http://localhost:3000/linkedin?id=123456&filter=day&start=1525028239000 
+    http://localhost:3000/linkedin?id=123456&filter=day&start=1525028239000&accountName=linkedin 
 ```
 **Gmail**
 Returns all emails and relevent metadata
   - `Parameters` 
     - `limit`:  Optional - limits the number of results returned, default is set to 10
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
 **Get** request to:
   ```sh                       
-     http://localhost:3000/gmail?limit={int value}
+     http://localhost:3000/gmail?limit={int value}&accountName=${account Name}
 ```
 Example 
   ```sh                       
-    http://localhost:3000/gmail?limit=20
+    http://localhost:3000/gmail?limit=20&accountName=Lincoln
 ```
 
 **Google Calendar**
@@ -144,13 +163,14 @@ Example
     - `id`:  Required - Your calendar id (found in the setting page)
     - `start` Optional - when to start looking for events in datetime format ( ISO 8601 format) default is set at 2018-05-01T13:00:00-00:00
     - `end` Optional - when to end looking for events in datetime format ( ISO 8601 format)
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
 **Get** request to:
   ```sh                       
-     https://localhost:3000/calendar?id={id}&start={start time}&end={end time}
+     https://localhost:3000/calendar?id={id}&start={start time}&end={end time}&accountName=${account Name}
 ```
 Example 
   ```sh                       
-    http://localhost:3000/calendar?id=example@gmail.com&start=2018-03-01T13:00:00-00:00&end=2018-05-29T00:00:00-00:00
+    http://localhost:3000/calendar?id=example@gmail.com&start=2018-03-01T13:00:00-00:00&end=2018-05-29T00:00:00-00:00&accountName=Lincoln
 ```
 
 **Google analytics**
@@ -160,71 +180,105 @@ Returns real-time analytics and data over time
     - `metrics` Optional - A comma-separated list of Analytics metrics. E.g., 'ga:sessions, ga:pageviews'. At least one metric must be specified. Default: " ga:sessions, ga:pageviews "
     - `start` Optioanl - Start date for fetching Analytics data. Requests can specify a start date formatted as YYYY-MM-DD, or as a relative date (e.g., today, yesterday, or 7daysAgo). Default: 2017-01-10
     - `end` Optional - End date for fetching Analytics data. Request can should specify an end date formatted as YYYY-MM-DD, or as a relative date (e.g., today, yesterday, or 7daysAgo). Default: 2017-07-10
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
 
 **Get** request to:
   ```sh                       
-     https://localhost:3000/analytics?id={id}&metrics={metrics}&start={start}&end={end}
+     https://localhost:3000/analytics?id={id}&metrics={metrics}&start={start}&end={end}&accountName=${account Name}
 ```
 Example 
   ```sh                       
-    http://localhost:3000/analytics?id={ga:12341}&metrics=ga:sessions
+    http://localhost:3000/analytics?id={ga:12341}&metrics=ga:sessions&accountName=Lincoln
 ```
-
-
-    
 
 **MailChimp**
 Returns results about each List and each campiagn 
   - `Parameters` 
-    - `none`
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
 **Get** request to:
   ```sh                       
-     https://localhost:3000/mailchimp
+     https://localhost:3000/mailchimp?accountName=${account Name}
 ```
 
 **SalesForce**
 Returns all contact and opporunites
   - `Parameters` 
-    - `q`:  Optional - A  SQOL salesforce query
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
 
 **Get** request to:
   ```sh                       
-     https://localhost:3000/salesforce
+     https://localhost:3000/salesforce?accountName=${account Name}
 ```
 
 **Xero**
 Returns information about accounts, contacts, bank transactions, employees, invoices, organisation, payments
   - `Parameters` 
-    - `none`
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
 
 **Get** request to:
   ```sh                       
-     https://localhost:3000/xero
+     https://localhost:3000/xero?accountName=${account Name}
 ```
 
 **Trello**
 Returns information for every board, List, cards(checklists and members)
   - `Parameters` 
     - `idMember`: Required - Your member ID
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
 
 **Get** request to:
   ```sh                       
-     https://localhost:3000/trello
+     https://localhost:3000/trello?accountName=${account Name}
 ```
 
 **QuickBooks**
 Returns information about accounts, bills, and incvoices
   - `Parameters` 
-    - `None`
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
 
 **Get** request to:
   ```sh                       
-     https://localhost:3000/quickbooks
+     https://localhost:3000/quickbooks?accountName=${account Name}
 ```
+
+**MySQL or MongoDB**
+Pulls information from an external MySql database or Mongo Database to your own MySQl database. Data is stored as a JSON Array as a `TEXT` data type.
+  - `Paramters`
+    - `Host`: endpoint of the external database
+    - `user`: User name for the external database
+    - `password`: password for the external database
+    - `Database`: which schema to pull data from
+    - `query`: 
+        - For MySQL, your sql query
+        - For MongoDB, The collection Name
+    - `type`: `mysql` or `monogo`
+    - `stage`: Two options
+        - `test` only return the JSON response, does not put into database
+        - `save` inserts the JSON array into your database
+**Get** request to:
+  ```sh                       
+     http://localhost:3000/databaseQuery?host=${host}&user={username}&password={password}&type=${mysql or mongo}&database=${db}&query=${sql query or mongo collection}&stage=${test or save}
+```
+Examples:
+  ```sh                       
+    http://localhost:3000/databaseQuery?host=${host}&user=${user name}&password=${password}&type=mysql&database=FastChat&query=SELECT * FROM Customers&stage=test
+```
+  ```sh                       
+    http://localhost:3000/databaseQuery?host=${host}&user=${user name}&password=${password}&type=mongo&database=FastChat&query=collection2&stage=test
+```
+
+**Hubspot**
+  - `Paramters`
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
+**Get** request to:
+  ```sh                       
+     http://localhost:3000/hubspot?accountName=${accountName}
+```
+
 
 ## Result
   - Response is in **JSON** 
-  
+    
    [SalesForceApp]: <https://na72.lightning.force.com/lightning/setup/NavigationMenus/home>
    [Quickbooks]: <https://developer.intuit.com/v2/ui#/app/startcreate>
    [TrelloApi]: <https://trello.com/app-key>
@@ -235,4 +289,5 @@ Returns information about accounts, bills, and incvoices
    [Node]:<https://nodejs.org/en/>
    [RDS]: <https://aws.amazon.com/rds/>
    [EC2]: <https://aws.amazon.com/ec2/>
+   [hubspot]:<https://developers.hubspot.com/>
   
