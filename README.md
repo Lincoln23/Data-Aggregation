@@ -1,6 +1,5 @@
 ## Data-Integration
 
-
 An automated data integration system that authorizes the user and seamlessly updates/pulls data from 10+ services on a set schedule. Data is stored into a MySQL database
 
 Built using:
@@ -11,7 +10,7 @@ Built using:
 ## Usage
 
   - By default the service is hosted on port **3000**
-  - Oauth redirect URL is on hosted on port **3333**
+  - Oauth redirect URL is hosted on port **3333**
   - Start server by ` datafire serve --tasks true ` or by `datafire serve --port {port number}`
  
  
@@ -242,6 +241,7 @@ Returns information about accounts, bills, and incvoices
 ```
 
 **MySQL or MongoDB**
+
 Pulls information from an external MySql database or Mongo Database to your own MySQl database. Data is stored as a JSON Array as a `TEXT` data type.
   - `Paramters`
     - `Host`: endpoint of the external database
