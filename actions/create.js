@@ -11,9 +11,6 @@ module.exports = new datafire.Action({
         type: "string"
     }, {
         type: "string",
-        title: "accountName"
-    }, {
-        type: "string",
         title: "Email"
     }, {
         type: "string",
@@ -24,11 +21,16 @@ module.exports = new datafire.Action({
     }, {
         type: "string",
         title: "organization"
-    }, {
+    },
+        // add your columns above this line
+        {
         type: "string",
         title: "spreadsheetId",
         default: "1G_LTW3K-0ta_ZRMV0KPNSHi4-2H8dUE6TO7yTV-2Tus"
-    }],
+        }, {
+            type: "string",
+            title: "accountName"
+        }],
     handler: async (input, context) => {
         try {
             let contextHost = context.request.headers.host;
