@@ -18,12 +18,14 @@ module.exports = new datafire.Action({
         await database.query("SELECT api_key FROM ApiKeys WHERE IntegrationName = 'mailchimp' AND AccountName = ? ", input.accountName).then(result => {
             result = result[0];
             console.log(result);
+            mailchimp = null;
             mailchimp = require('@datafire/mailchimp').create({
                 apiKey: result.api_key,
             });
         }).catch(e => {
             console.log("Error selecting from credentials for mailchimp, Msg: " + e);
         });
+        if (mailchimp == null) return {error: "Invalid credentials/accountName"};
         console.log('in mailchimp');
         let result = [];
         let resultList = await mailchimp.getLists({

@@ -17,6 +17,7 @@ module.exports = new datafire.Action({
         let database = new setup.database(config);
         await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'salesforce' and AccountName = ?", input.accountName).then(result => {
             result = result[0];
+            salesforce = null;
             salesforce = require('@datafire/salesforce').create({
                 access_token: result.AccessToken,
                 refresh_token: result.RefreshToken,
@@ -26,14 +27,13 @@ module.exports = new datafire.Action({
         }).catch(e => {
             console.log("Error selecting from credentials for salesforce, Msg: " + e);
         });
-
+        if (salesforce == null) return {error: "Invalid credentials/accountName"};
+        console.log('in salesforce');
         let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format
         let newDataContact = 0; // set to true only if there is new data and it will update the last synced time
         let newDataOpportunity = 0; // set to true only if there is new data and it will update the last synced time
-        console.log('in salesforce');
         let contactsSyncTime;
         let opportunitySyncTime;
-
 
         if (!fs.existsSync('./SalesForce.txt')) {
             fs.writeFile("SalesForce.txt", "SalesForce Synced for the first time", function (err) {

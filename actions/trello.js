@@ -11,20 +11,12 @@ module.exports = new datafire.Action({
         title: "accountName",
     }],
     handler: async (input, context) => {
-        let contextHost;
-        try {
-            console.log(typeof context.request.headers.host);
-            if (context.request.headers.host) {
-                console.log("in here");
-                contextHost = context.request.headers.host;
-            }
-        } catch (e) {
-
-        }
+        console.log(typeof context.request.headers.host);
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         await database.query("SELECT api_key, api_token FROM ApiKeys WHERE IntegrationName = 'trello' AND AccountName = ?", input.accountName).then(result => {
             result = result[0];
+            trello = null;
             trello = require('@datafire/trello').create({
                 api_key: result.api_key,
                 api_token: result.api_token
@@ -32,6 +24,7 @@ module.exports = new datafire.Action({
         }).catch(e => {
             console.log("Error selecting from credentials for trello, Msg: " + e);
         });
+        if (trello == null) return {error: "Invalid credentials/accountName"};
         console.log('in trello');
         let result = [];
         // get all available boards to the user

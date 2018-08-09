@@ -16,10 +16,16 @@ module.exports = new datafire.Action({
         let database = new setup.database(config);
         await database.query("SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND AccountName = ?", input.accountName).then(result => {
             result = result[0];
+            hubspot = null;
             hubspot = new Hubspot({accessToken: result.AccessToken});
         }).catch(e => {
             console.log("Error selecting from credentials for hubspot, Msg: " + e);
         });
+        if (hubspot === null) {
+            return {
+                error: "Invalid credentials/AccountName"
+            }
+        }
         let contactOptions = {
             count: 100
         };

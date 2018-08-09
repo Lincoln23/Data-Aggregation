@@ -5,7 +5,7 @@ const setup = require('./setup.js');
 let config = require('./config.json');
 
 
-//tokens last 60 days
+//tokens last 60 days and does not provide refresh tokens
 module.exports = new datafire.Action({
   inputs: [{
     // id is found in the company's management page
@@ -31,6 +31,7 @@ module.exports = new datafire.Action({
       let database = new setup.database(config);
       await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'linkedin' AND AccountName = ? ", input.accountName).then(result => {
           result = result[0];
+          linkedin = null;
           linkedin = require('@datafire/linkedin').create({
               access_token: result.AccessToken,
               refresh_token: result.RefreshToken,
@@ -40,6 +41,7 @@ module.exports = new datafire.Action({
       }).catch(e => {
           console.log("Error selecting from credentials for linkedin, Msg: " + e);
       });
+      if (linkedin == null) return {error: "Invalid credentials/accountName"};
     console.log('in linkedin');
     //gets the Company's history
     const companyHistory = new Promise((resolve, reject) => {

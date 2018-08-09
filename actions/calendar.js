@@ -25,16 +25,14 @@ module.exports = new datafire.Action({
         default: "UTC"
     }],
     handler: async (input, context) => {
-        try {
-            let contextHost = context.request.headers.host;
-        } catch (e) {
-
-        }
+        console.log(input.accountName);
+        let contextHost = context.request.headers.host;
         console.log(contextHost);
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND AccountName = ?", input.accountName).then(result => {
             result = result[0];
+            google_calendar = null;
             google_calendar = require('@datafire/google_calendar').create({
                 access_token: result.AccessToken,
                 refresh_token: result.RefreshToken,
@@ -43,7 +41,13 @@ module.exports = new datafire.Action({
             });
         }).catch(e => {
             console.log("Error selecting from credentials for google_calendar, Msg: " + e);
+            return e;
         });
+        if (google_calendar === null) {
+            return {
+                error: "Invalid credentials/accountName"
+            }
+        }
         console.log('in calendar');
         //return all events in the calendar, can add addition timeMax and timeMin params in RFC3339 timeStamp
         const events = new Promise((resolve, reject) => {

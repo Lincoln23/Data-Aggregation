@@ -15,15 +15,12 @@ module.exports = new datafire.Action({
       title: "accountName",
   }],
   handler: async (input, context) => {
-      try {
-          let contextHost = context.request.headers.host;
-      } catch (e) {
-          console.log("cannot get contextHost");
-      }
+      // let contextHost = context.request.headers.host;
       config.database = await setup.getSchema("abc");
       let database = new setup.database(config);
       await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'gmail' AND AccountName= ?", input.accountName).then(result => {
           result = result[0];
+          google_gmail = null;
           google_gmail = require('@datafire/google_gmail').create({
               access_token: result.AccessToken,
               refresh_token: result.RefreshToken,
@@ -33,6 +30,11 @@ module.exports = new datafire.Action({
       }).catch(e => {
           console.log("Error selecting from credentials for gmail, Msg: " + e);
       });
+      if (google_gmail === null) {
+          return {
+              error: "Invalid credentials/AccountName"
+          }
+      }
     console.log('in gmail');
     //returns message ids
     const listMessagesResponse = await google_gmail.users.messages.list({

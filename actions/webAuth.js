@@ -9,8 +9,6 @@ let app = express();
 let webUrl = require('../auth');
 app.listen(3333, () => console.log('Listening on port 3333'));
 
-//TODO fix cron, set it to every 15 min, not every 15th minute of the hour
-
 let state = null;
 //FIXME need to have integration,clientId ... variables here or else they won't update in the app.get method;
 let integration;
@@ -20,7 +18,6 @@ let clientSecret;
 const OAUTH_PORT = 3333;
 const redirect_url = 'http://localhost:' + OAUTH_PORT;
 
-//TODO multiple account support
 let getOAuthURL = (clientId, redirect, integration) => {
     let scope = webUrl[integration].scopes;
     let url = webUrl[integration].code;

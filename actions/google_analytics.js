@@ -19,6 +19,7 @@ module.exports = new datafire.Action({
         let database = new setup.database(config);
         await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_analytics' AND AccountName= ?", input.accountName).then(result => {
             result = result[0];
+            google_analytics = null;
             google_analytics = require('@datafire/google_analytics').create({
                 access_token: result.AccessToken,
                 refresh_token: result.RefreshToken,
@@ -28,6 +29,11 @@ module.exports = new datafire.Action({
         }).catch(e => {
             console.log("Error selecting from credentials for google_analytics, Msg: " + e);
         });
+        if (google_analytics === null) {
+            return {
+                error: "Invalid credentials/AccountName"
+            }
+        }
         console.log('in analytics');
         const getData = new Promise((resolve, reject) => {
             resolve(google_analytics.data.ga.get({

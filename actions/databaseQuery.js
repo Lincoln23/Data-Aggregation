@@ -45,7 +45,6 @@ let mongoTest = (host, database, query) => {
 };
 let insertIntoDb = async (result, dbType,) => {
     config.database = await setup.getSchema("abc");
-    console.log(config);
     let database = new setup.database(config);
     let sql = "INSERT INTO externalDatabase (Date, Everything, DatabaseType) VALUES (?,?,?)";
     let sqlValue = [new Date(), JSON.stringify(result), dbType];

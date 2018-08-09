@@ -58,7 +58,7 @@ let refresh = (accountName, id, secret, refreshToken, integration) => {
             database.query(sql, values).catch(err => {
                 console.log("Error updating refreshTokens in AccessKeys, Message: " + err);
             });
-            console.log("success updating refreshTokens for AccessKeys");
+            console.log("success updating refreshTokens for AccessKeys for " + integration);
         }
     });
 };
