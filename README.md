@@ -69,12 +69,12 @@ http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_s
 **MySQL** 
   - Set up SQL connection is `actions/config.json`
   ```sh                       
-const connection = mysql.createConnection({
-  host: "host",
-  user: "user",
-  password: "pass",
-  database: "Db"
-});
+{
+  "host": "",
+  "user": "",
+  "password": "",
+  "database": ""
+}
 ```
   - You will need to update the SQL insert queries for your own database
     - My database is setup as:
