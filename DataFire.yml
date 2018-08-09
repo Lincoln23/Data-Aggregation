@@ -34,7 +34,7 @@ paths:
     get:
       action: quickbooks
       accounts: {}
-  /getSheet:
+  /sheets:
     get:
       action: retrieve
       accounts: {}
@@ -87,7 +87,7 @@ options:
 tests: {}
 tasks:
   refreshToken:
-    schedule: cron(*/15 * * * *)
+    schedule: cron(0,15,30,45 * * * *)
     action: refreshToken
   googles_sheets:
     schedule: cron(0 */12 * * *)
@@ -117,7 +117,7 @@ tasks:
     action: xero
     accounts: {}
   trello:
-    schedule: cron(0 */12 * * *)
+    schedule: cron(* * * * *)
     action: trello
     accounts: {}
   mailchimp:
