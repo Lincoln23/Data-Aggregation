@@ -112,8 +112,8 @@ inputs: [{
 ```
   - `Parameters`
     - `spreadsheetId`: Required
-            -  This can be passed as a parameter in the **GET** request or set as a default
-            -  The id is found in your spreadsheet URL, then sotre your id in the `inputs` array in `create.js` and `sheets.js`
+        -  This can be passed as a parameter in the **GET** request or set as a default
+        -  The id is found in your spreadsheet URL, then sotre your id in the `inputs` array in `create.js` and `sheets.js`
         ```sh                       
             https://docs.google.com/spreadsheets/d/${this value}/
          ```
@@ -135,7 +135,7 @@ inputs: [{
     http://localhost:3000/sheets?accountName=gmail1&spreadsheetId=1htLGczzfdgsd43gXSG4I324dfQQ
 ```
 
-To add values to your spreadsheet send a **POST** Request to:
+To add data to your spreadsheet send a **POST** Request to:
 ```sh                       
 http://localhost:3000/postSheet?accountName=${account Name}&spreadsheetId=${your id}
 ```
@@ -210,7 +210,7 @@ Retrives all your events and when you are free/busy
   - `Parameters` 
     - `id`:  Required - Your calendar id (found in the setting page)
         -    This can be passed as a parameter in the **GET** request or set as a default
-            -  [Instructions here for finding id][calendarID] then store your id in the `inputs` array in `calendar.js`
+        -  [Instructions here for finding id][calendarID] then store your id in the `inputs` array in `calendar.js`
          ```sh                       
         {
             type: "string",
