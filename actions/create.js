@@ -22,7 +22,7 @@ module.exports = new datafire.Action({
         type: "string",
         title: "organization"
     },
-        // add your columns above this line
+        // add your columns in order above this line
         {
         type: "string",
         title: "spreadsheetId",

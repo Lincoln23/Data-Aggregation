@@ -9,6 +9,10 @@ module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "accountName",
+    }, {
+        type: "string",
+        title: "id",
+        default: "lincoln346"
     }],
     handler: async (input, context) => {
         console.log(typeof context.request.headers.host);
@@ -29,7 +33,7 @@ module.exports = new datafire.Action({
         let result = [];
         // get all available boards to the user
         let boards = await trello.getMembersBoardsByIdMember({
-            idMember: "lincoln346",
+            idMember: input.id,
             lists: "none",
             fields: "all",
             filter: "all",
