@@ -81,10 +81,10 @@ const connection = mysql.createConnection({
 ![alt text](https://raw.githubusercontent.com/Lincoln23/Data-Integration/master/DataIntegration.png)
 
 ## Integrations
-  **Google Sheet**
+## Google Sheets
   Returns data from the spreadsheet mapped to a field and allows users to post data to the spreadsheet
   
-    **Get** request to:
+**Get** request to:
   ```sh                       
     http://localhost:3000/sheets?accountName=${account Name}
 ```
@@ -151,7 +151,7 @@ With Json Format
 }
 ```
 
-**Linkedin**
+## Linkedin
 Returns the company's statistics and follow history
 
 **Get** request to:
@@ -184,7 +184,7 @@ Example
   ```sh                       
     http://localhost:3000/linkedin?id=123456&filter=day&start=1525028239000&accountName=linkedin&id=1234
 ```
-**Gmail**
+## Gmail
 Returns all emails and relevent metadata
 
 **Get** request to:
@@ -200,7 +200,7 @@ Returns all emails and relevent metadata
     http://localhost:3000/gmail?limit=20&accountName=Lincoln
 ```
 
-**Google Calendar**
+## Google Calendar
 Retrives all your events and when you are free/busy
 
 **Get** request to:
@@ -231,7 +231,7 @@ Retrives all your events and when you are free/busy
     http://localhost:3000/calendar?id=example@gmail.com&start=2018-03-01T13:00:00-00:00&end=2018-05-29T00:00:00-00:00&accountName=Lincoln&id=example@gmail.com
 ```
 
-**Google analytics**
+## Google analytics
 Returns real-time analytics and data over time
 
 **Get** request to:
@@ -250,7 +250,7 @@ Returns real-time analytics and data over time
     http://localhost:3000/analytics?id={ga:12341}&metrics=ga:sessions&accountName=Lincoln
 ```
 
-**MailChimp**
+## MailChimp
 Return all metadata about your campaigns and Lists
 
 **Get** request to:
@@ -266,7 +266,7 @@ Returns results about each List and each campiagn
      https://localhost:3000/mailchimp?accountName=mail1
 ```
 
-**SalesForce**
+## SalesForce
 Returns all contact and opportunities
 
 **Get** request to:
@@ -281,7 +281,7 @@ Returns all contact and opportunities
      https://localhost:3000/salesforce?accountName=saleforce1
 ```
 
-**Xero**
+## Xero
 Retrives information about your Accounts, Contacts, BankTranscations, Employees, Invoices, Organisations and Payments
 
 **Get** request to:
@@ -298,7 +298,7 @@ Returns information about accounts, contacts, bank transactions, employees, invo
 ```
 
 
-**Trello**
+## Trello
 Returns information for every board, List, cards(checklists and members)
 
 **Get** request to:
@@ -327,7 +327,7 @@ Returns information for every board, List, cards(checklists and members)
  https://localhost:3000/trello?accountName=trello1&id=lincoln23
 ```
 
-**QuickBooks**
+## QuickBooks
 Returns information about accounts, bills, and incvoices
 
 **Get** request to:
@@ -358,7 +358,7 @@ https://localhost:3000/quickbooks?accountName=quickbooks1&id=1923445979
 
 
 
-**MySQL or MongoDB**
+## MySQL or MongoDB
 Pulls information from an external MySql database or Mongo Database to your own MySQl database. Data is stored as a JSON Array as a `TEXT` data type.
 
 **Get** request to:
@@ -386,7 +386,7 @@ Pulls information from an external MySql database or Mongo Database to your own 
     http://localhost:3000/databaseQuery?host=${host}&user=${user name}&password=${password}&type=mongo&database=FastChat&query=collection2&stage=test
 ```
 
-**Hubspot**
+## Hubspot
 Returns all contacts and companies 
 
 **Get** request to:
