@@ -83,6 +83,7 @@ const connection = mysql.createConnection({
 ## Integrations
   **Google Sheet**
   Returns data from the spreadsheet mapped to a field and allows users to post data to the spreadsheet
+  
     **Get** request to:
   ```sh                       
     http://localhost:3000/sheets?accountName=${account Name}
@@ -152,6 +153,7 @@ With Json Format
 
 **Linkedin**
 Returns the company's statistics and follow history
+
 **Get** request to:
   ```sh                       
     http://localhost:3000/linkedin?id={id}&filter={day or month}&start={start time}&accountName=${account Name}
@@ -184,6 +186,7 @@ Example
 ```
 **Gmail**
 Returns all emails and relevent metadata
+
 **Get** request to:
   ```sh                       
      http://localhost:3000/gmail?limit={int value}&accountName=${account Name}
@@ -198,6 +201,8 @@ Returns all emails and relevent metadata
 ```
 
 **Google Calendar**
+Retrives all your events and when you are free/busy
+
 **Get** request to:
   ```sh                       
      https://localhost:3000/calendar?id={id}&start={start time}&end={end time}&accountName=${account Name}
@@ -228,6 +233,7 @@ Returns all emails and relevent metadata
 
 **Google analytics**
 Returns real-time analytics and data over time
+
 **Get** request to:
   ```sh                       
      https://localhost:3000/analytics?id={id}&metrics={metrics}&start={start}&end={end}&accountName=${account Name}
@@ -245,6 +251,8 @@ Returns real-time analytics and data over time
 ```
 
 **MailChimp**
+Return all metadata about your campaigns and Lists
+
 **Get** request to:
   ```sh                       
      https://localhost:3000/mailchimp?accountName=${account Name}
@@ -260,6 +268,7 @@ Returns results about each List and each campiagn
 
 **SalesForce**
 Returns all contact and opportunities
+
 **Get** request to:
   ```sh                       
      https://localhost:3000/salesforce?accountName=${account Name}
@@ -273,6 +282,8 @@ Returns all contact and opportunities
 ```
 
 **Xero**
+Retrives information about your Accounts, Contacts, BankTranscations, Employees, Invoices, Organisations and Payments
+
 **Get** request to:
   ```sh                       
      https://localhost:3000/xero?accountName=${account Name}
@@ -289,6 +300,7 @@ Returns information about accounts, contacts, bank transactions, employees, invo
 
 **Trello**
 Returns information for every board, List, cards(checklists and members)
+
 **Get** request to:
   ```sh                       
      https://localhost:3000/trello?accountName=${account Name}
@@ -317,6 +329,7 @@ Returns information for every board, List, cards(checklists and members)
 
 **QuickBooks**
 Returns information about accounts, bills, and incvoices
+
 **Get** request to:
   ```sh                       
      https://localhost:3000/quickbooks?accountName=${account Name}
@@ -347,6 +360,7 @@ https://localhost:3000/quickbooks?accountName=quickbooks1&id=1923445979
 
 **MySQL or MongoDB**
 Pulls information from an external MySql database or Mongo Database to your own MySQl database. Data is stored as a JSON Array as a `TEXT` data type.
+
 **Get** request to:
   ```sh                       
      http://localhost:3000/databaseQuery?host=${host}&user={username}&password={password}&type=${mysql or mongo}&database=${db}&query=${sql query or mongo collection}&stage=${test or save}
@@ -374,6 +388,7 @@ Pulls information from an external MySql database or Mongo Database to your own 
 
 **Hubspot**
 Returns all contacts and companies 
+
 **Get** request to:
   ```sh                       
      http://localhost:3000/hubspot?accountName=${accountName}
