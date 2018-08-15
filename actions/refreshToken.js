@@ -5,22 +5,16 @@ let webUrl = require('../auth');
 const setup = require('./setup.js');
 let config = require('./config.json');
 
-let database;
+// let database;
 let integration;
 let accountName;
 let refreshToken;
 let clientID;
 let clientSecret;
-//varchar length was too short, didnt get all
-// let database = new db(config);
-let refresh = (accountName, id, secret, refreshToken, integration) => {
-    console.log(integration);
+
+let refreshKeys = async (accountName, id, secret, refreshToken, integration) => {
+    console.log("Refreshing: " + integration);
     let tokenUrl = webUrl[integration].refresh;
-    console.log(id);
-    console.log(secret);
-    console.log(refreshToken);
-    console.log(integration);
-    console.log(tokenUrl);
     let options = {
         method: 'POST',
         url: tokenUrl,
@@ -37,30 +31,39 @@ let refresh = (accountName, id, secret, refreshToken, integration) => {
                 client_secret: secret
             }
     };
-    request(options, function (error, response, body) {
-        if (error) throw new Error(error);
-        let jsonBody = JSON.parse(body);
-        // console.log(jsonBody.access_token);
-        // console.log(jsonBody.refresh_token);
-        // console.log(jsonBody.expires_in);
-        if (jsonBody.error) {
-            console.log(jsonBody.error);
-        } else {
-            if (integration == 'gmail' || integration == 'google_sheets' || integration == 'google_calendar' || integration == 'google_analytics') {
-                jsonBody.refresh_token = refreshToken;
+    try {
+        request(options, async (error, response, body) => {
+            if (error) throw error;
+            let jsonBody = JSON.parse(body);
+            if (jsonBody.error) {
+                console.log(jsonBody.error);
+                return jsonBody.error;
+            } else {
+                if (integration === 'gmail' || integration === 'google_sheets' || integration === 'google_calendar' || integration === 'google_analytics' || integration === "salesforce") {
+                    jsonBody.refresh_token = refreshToken;
+                }
+                let date = null;
+                if (jsonBody.expires_in !== undefined) {
+                    date = expiryDate(jsonBody.expires_in);
+                }
+                let database = new setup.database(config);
+                try {
+                    let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+                    let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
+                    await database.query(sql, values).catch(err => {
+                        console.log("Error updating refreshTokens in AccessKeys, Message: " + err + " Integration: " + integration);
+                    });
+                } finally {
+                    database.close();
+                }
+
             }
-            let date = null;
-            if (jsonBody.expires_in != undefined) {
-                date = expiryDate(jsonBody.expires_in);
-            }
-            let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
-            let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
-            database.query(sql, values).catch(err => {
-                console.log("Error updating refreshTokens in AccessKeys, Message: " + err);
-            });
-            console.log("success updating refreshTokens for AccessKeys for " + integration);
-        }
-    });
+        });
+    } catch (e) {
+        console.log("Error in sending POST request in refreshToken.js, Msg: " + e);
+    }
+
+
 };
 
 let expiryDate = (seconds) => {
@@ -75,25 +78,37 @@ let expiryDate = (seconds) => {
     return date.toISOString();
 };
 
+
 module.exports = new datafire.Action({
     handler: async (input, context) => {
-        // console.log(context.request.headers.host);
-        // console.log(context);
+        let refresh;
         config.database = await setup.getSchema("abc");
-        database = new setup.database(config);
-        database.query("SELECT AccountName,IntegrationName, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15").then(result => {
-            console.log(result);
-            result.forEach(value => {
+        let database = new setup.database(config);
+        try {
+            console.log("Database1 started");
+            await database.query("SELECT AccountName,IntegrationName, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15").then(async result => {
+                if (result.length === 0) {
+                    console.log("No integrations needs to be refreshed");
+                    return "No AccessKeys needs to be refreshed";
+                }
+                refresh = result;
+            }).catch((err) => {
+                console.log("Error selecting refreshTimes from AccessKeys, Message: " + err);
+            });
+        } finally {
+            database.close();
+        }
+        if (refresh !== undefined) {
+            await refresh.forEach(async value => {
                 accountName = value.AccountName;
                 integration = value.IntegrationName;
                 refreshToken = value.RefreshToken;
                 clientID = value.ClientId;
                 clientSecret = value.ClientSecret;
-                refresh(accountName, clientID, clientSecret, refreshToken, integration);
-            })
-        }).catch((err) => {
-            console.log("Error selecting refreshTimes from AccessKeys, Message: " + err);
-        });
+                await refreshKeys(accountName, clientID, clientSecret, refreshToken, integration);
+            });
+        }
         return "refresh in progress";
     },
 });
+module.exports.refreshKeys = refreshKeys;

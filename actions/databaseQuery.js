@@ -46,11 +46,16 @@ let mongoTest = (host, database, query) => {
 let insertIntoDb = async (result, dbType,) => {
     config.database = await setup.getSchema("abc");
     let database = new setup.database(config);
-    let sql = "INSERT INTO externalDatabase (Date, Everything, DatabaseType) VALUES (?,?,?)";
-    let sqlValue = [new Date(), JSON.stringify(result), dbType];
-    database.query(sql, sqlValue).catch(err => {
-        console.log("Error INSERTING into externalDatabase, Msg: " + err);
-    });
+    try {
+        let sql = "INSERT INTO externalDatabase (Date, Everything, DatabaseType) VALUES (?,?,?)";
+        let sqlValue = [new Date(), JSON.stringify(result), dbType];
+        await database.query(sql, sqlValue).catch(err => {
+            console.log("Error INSERTING into externalDatabase, Msg: " + err);
+        });
+    } finally {
+        database.close();
+    }
+
 };
 module.exports = new datafire.Action({
     inputs: [{
@@ -93,7 +98,6 @@ module.exports = new datafire.Action({
                 insertIntoDb(result, input.type);
             } else if (input.type === "mongo") {
                 let result = await mongoTest(input.host, input.database, input.query);
-                console.log(result);
                 insertIntoDb(result, input.type)
             }
 

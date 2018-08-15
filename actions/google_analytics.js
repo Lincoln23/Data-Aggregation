@@ -8,13 +8,9 @@ module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "accountName",
+        default: "analytics1"
     }],
     handler: async (input, context) => {
-        try {
-            let contextHost = context.request.headers.host;
-        } catch (e) {
-            console.log("cannot get contextHost");
-        }
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_analytics' AND AccountName= ?", input.accountName).then(result => {

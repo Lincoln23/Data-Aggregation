@@ -5,10 +5,9 @@ const setup = require('./setup.js');
 let config = require('./config.json');
 
 
-//tokens last 60 days and does not provide refresh tokens
+//tokens last 60 days and does not provide refresh tokens, need to go through regular webAuth authenication again
 module.exports = new datafire.Action({
   inputs: [{
-    // id is found in the company's management page
     type: "string",
     title: "id",
       default: "27121438"
@@ -23,10 +22,11 @@ module.exports = new datafire.Action({
     default: "1516982869000"
   }, {
       type: "string",
-      title: "accountName"
+      title: "accountName",
+      default: "linkedin1"
   }],
   handler: async (input, context) => {
-      console.log(context.request.headers.host);
+      // console.log(context.request.headers.host);
       config.database = await setup.getSchema("abc");
       let database = new setup.database(config);
       await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'linkedin' AND AccountName = ? ", input.accountName).then(result => {

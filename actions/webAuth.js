@@ -4,19 +4,17 @@ const request = require('request');
 let express = require('express');
 const setup = require('./setup');
 let config = require('./config.json');
-let database;
 let app = express();
 let webUrl = require('../auth');
-app.listen(3333, () => console.log('Listening on port 3333'));
+app.listen(3333, () => console.log('Listening for redirect URL on port: 3333'));
 
+//WARN need to have integration,clientId ... variables here or else they won't update in the app.get method;
 let state = null;
-//FIXME need to have integration,clientId ... variables here or else they won't update in the app.get method;
 let integration;
 let accountName;
 let clientId;
 let clientSecret;
-const OAUTH_PORT = 3333;
-const redirect_url = 'http://localhost:' + OAUTH_PORT;
+
 
 let getOAuthURL = (clientId, redirect, integration) => {
     let scope = webUrl[integration].scopes;
@@ -32,16 +30,15 @@ let getOAuthURL = (clientId, redirect, integration) => {
                 temp += key + ' ';
             }
         }
-        if (integration == "hubspot") { // it won't work unless the addition space (%20) is removed at the end of the scope parameter
+        if (integration === "hubspot") { // it won't work unless the addition space (%20) is removed at the end of the scope parameter
             let str = encodeURIComponent(temp).toString();
             str = str.slice(0, -3);
             url += '&scope=' + str;
         } else {
             url += '&scope=' + encodeURIComponent(temp);
         }
-
     }
-    if (integration == 'gmail' || integration == 'google_sheets' || integration == 'google_calendar' || integration == 'google_analytics') { //this is need for google products to get refresh tokens
+    if (integration === 'gmail' || integration === 'google_sheets' || integration === 'google_calendar' || integration === 'google_analytics') { //this is need for google products to get refresh tokens
         url += '&access_type=offline';
         url += '&approval_prompt=force';
     }
@@ -79,13 +76,18 @@ let access = (code, id, secret, redirect_url, state2, integration, accountName) 
                 if (jsonBody.expires_in != undefined) {
                     date = expiryDate(jsonBody.expires_in);
                 }
-                console.log(accountName);
-                let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
-                let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
-                database.query(sql, values).catch(err => {
-                    console.log("Error inserting into AccessKeys, Message: " + err);
-                });
-                console.log("success inserting into AccessKeys");
+                let database = new setup.database(config);
+                try {
+                    let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+                    let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
+                    database.query(sql, values).catch(err => {
+                        console.log("Error inserting into AccessKeys, Message: " + err);
+                    });
+                } finally {
+                    database.close();
+                    console.log("Database closed");
+                }
+
             }
         });
     }
@@ -126,6 +128,7 @@ module.exports = new datafire.Action({
     }],
 
     handler: async (input, context) => {
+        const redirect_url = 'http://localhost:3333'; // use context obj to get url path to replace localhost
         integration = input.integration;
         clientId = input.client_id;
         clientSecret = input.client_secret;
@@ -133,9 +136,7 @@ module.exports = new datafire.Action({
         console.log("Web Oauth integration for: " + integration);
         let code = null;
         let state2 = null;
-        console.log(context.request.headers.host);
-        config.database = await setup.getSchema("abc");
-        database = new setup.database(config);
+        config.database = await setup.getSchema("abc"); // use context to get url here
         let url = getOAuthURL(input.client_id, redirect_url, input.integration);
         app.get('/', (req, res) => {
             code = decodeURIComponent(req.query.code);

@@ -10,7 +10,8 @@ module.exports = new datafire.Action({
         default: "lincoln@sublimeapp.com"
     }, {
         type: "string",
-        title: "accountName"
+        title: "accountName",
+        default: "calendar1"
     }, {
         type: "string",
         title: "start",
@@ -25,9 +26,6 @@ module.exports = new datafire.Action({
         default: "UTC"
     }],
     handler: async (input, context) => {
-        console.log(input.accountName);
-        let contextHost = context.request.headers.host;
-        console.log(contextHost);
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND AccountName = ?", input.accountName).then(result => {

@@ -12,11 +12,12 @@ module.exports = new datafire.Action({
         default: "193514791715979"
     }, {
         type: "string",
-        title: "accountName"
+        title: "accountName",
+        default: "quickbooks1"
     }],
     handler: async (input, context) => {
         // send a request to your service
-        console.log(context.request.headers.host);
+        // console.log(context.request.headers.host);
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'quickbooks' AND AccountName = ? ", input.accountName).then(result => {

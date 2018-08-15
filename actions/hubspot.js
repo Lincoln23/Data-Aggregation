@@ -8,10 +8,10 @@ module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "accountName",
+        default: "hubspot1"
     }],
-    //TODO figure out how to store context.request.headers.host because it only exist with http request
     handler: async (input, context) => {
-        console.log(context.request.headers.host);
+        let res = [];
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         await database.query("SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND AccountName = ?", input.accountName).then(result => {
@@ -30,18 +30,17 @@ module.exports = new datafire.Action({
             count: 100
         };
         let companyOptions = {
+            limit: 250,
+            Offset: "",
             properties: ["name", "website"]
         };
-        let res = [];
         await hubspot.contacts.get(contactOptions)
             .then(results => {
-                console.log(results);
                 res.push(results);
             }).catch(err => {
                 console.error(err)
             });
         await hubspot.companies.get(companyOptions).then(results => {
-            console.log(results);
             res.push(results);
         }).catch(err => {
             console.log(err);

@@ -44,7 +44,6 @@ exports.getSchema = async (paramter) => {
 };
 
 
-//TODO Need to add a way to only trigger the endpoints which the user has authorized with, possible solution, put all the authorization in an array and loop through that
 //Invokes all the end points at the beginning of the program
 // axios.all([
 //     axios.get('http://localhost:3000/getsheet'),
