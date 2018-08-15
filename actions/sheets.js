@@ -62,7 +62,6 @@ module.exports = new datafire.Action({
                     });
 
                     rows.forEach(async json => {
-                        console.log(json);
                         let sql = 'INSERT INTO GoogeSheetsContacts (Name, Organization, Phone, Email, Location) VALUES (?,?,?,?,?)';
                         let values = [json.name, json.organization, json.phone, json.Email, json.City];
                         database.query(sql, values).catch(e => {

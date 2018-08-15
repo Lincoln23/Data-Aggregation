@@ -85,7 +85,6 @@ module.exports = new datafire.Action({
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
-            console.log("Database1 started");
             await database.query("SELECT AccountName,IntegrationName, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15").then(async result => {
                 if (result.length === 0) {
                     console.log("No integrations needs to be refreshed");

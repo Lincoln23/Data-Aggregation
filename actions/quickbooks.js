@@ -29,7 +29,7 @@ module.exports = new datafire.Action({
                 false, //token secret, dont need or oauth2
                 input.id, //company id
                 true, // use the sandbox?
-                true, // enable debugging?
+                false, // enable debugging?
                 23, // set minorversion
                 '2.0', //Oauth Version
                 result.RefreshToken //Refresh Token``

@@ -26,6 +26,7 @@ module.exports = new datafire.Action({
                 error: "Invalid credentials/AccountName"
             }
         }
+        console.log("in hubspot");
         let contactOptions = {
             count: 100
         };

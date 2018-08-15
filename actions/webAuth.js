@@ -85,7 +85,6 @@ let access = (code, id, secret, redirect_url, state2, integration, accountName) 
                     });
                 } finally {
                     database.close();
-                    console.log("Database closed");
                 }
 
             }

@@ -154,7 +154,6 @@ module.exports = new datafire.Action({
             return "SalesForce.js is running";
         } finally {
             database.close();
-            console.log("closing database")
         }
     },
 });

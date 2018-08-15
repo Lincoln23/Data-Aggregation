@@ -74,7 +74,7 @@ module.exports = new datafire.Action({
                             });
                             let biggerResult = [];
                             //Looping through the cards Array
-                            listsAndCards[key2].cards.forEach(async element => {
+                            await listsAndCards[key2].cards.forEach(async element => {
                                 let checkListArray = [];
                                 let memberListArray = [];
                                 let sqlCards = 'INSERT INTO TrelloCards (ListID, CardName,CardId,CardClosed,DateLastActivity,Description,DueDate,DueComplete) VALUES (?,?,?,?,?,?,?,?)';
@@ -82,7 +82,7 @@ module.exports = new datafire.Action({
                                 await database.query(sqlCards, cardValues).catch(e => {
                                     console.log("Error inserting into TrelloCards, Message: " + e);
                                 });
-                                element.labels.forEach(async labels => {
+                                await element.labels.forEach(async labels => {
                                     let sqlLabels = 'INSERT INTO TrelloLabels (CardId, LabelId,Name,Color) VALUES (?,?,?,?)';
                                     let labelValues = [element.id, labels.id, labels.name, labels.color];
                                     await database.query(sqlLabels, labelValues).catch(e => {
@@ -90,7 +90,7 @@ module.exports = new datafire.Action({
                                     });
                                 });
                                 // for each card, get the checklist with it
-                                element.idChecklists.forEach(async value => {
+                                await element.idChecklists.forEach(async value => {
                                     let checklist = await trello.getChecklistsByIdChecklist({
                                         idChecklist: value,
                                         card_fields: "none",
@@ -106,7 +106,7 @@ module.exports = new datafire.Action({
                                         console.log("Error inserting into TrelloCheckLists, Message: " + e);
                                     });
 
-                                    checklist.checkItems.forEach(async checkListItems => {
+                                    await checklist.checkItems.forEach(async checkListItems => {
                                         let sqlCheckListItem = 'INSERT INTO TrelloCheckListItems (CheckListId, CheckListItemId,State,Name) VALUES (?,?,?,?)';
                                         let checkListItemValues = [checkListItems.idChecklist, checkListItems.id, checkListItems.state, checkListItems.name];
                                         await database.query(sqlCheckListItem, checkListItemValues).catch(e => {
@@ -116,7 +116,7 @@ module.exports = new datafire.Action({
                                     })
                                 });
                                 //looping through the members array in listsAndCards
-                                element.idMembers.forEach(async (people) => {
+                                await element.idMembers.forEach(async (people) => {
                                     let members = await trello.getMembersByIdMember({
                                         idMember: people,
                                         fields: "fullName,initials,bio,status,username,email,url",
@@ -127,7 +127,6 @@ module.exports = new datafire.Action({
                                     await database.query(sqlMembers, membersValues).catch(e => {
                                         console.log("Error inserting into TrelloMembers, Message: " + e);
                                     });
-
                                 });
                                 //Creating the second part of the of the custom JSON reponse with the cards
                                 let tempList = {
@@ -151,13 +150,12 @@ module.exports = new datafire.Action({
                             temp[listsAndCards[key2].name] = biggerResult;
                         }
                     }
-                    result.push(temp);
+                    await result.push(temp);
                 }
             }
-            return result;
+            return await result;
         } finally {
-            database.close();
-            console.log("Database Closed")
+            await database.close();
         }
 
     },
