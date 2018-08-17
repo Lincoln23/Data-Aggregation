@@ -85,34 +85,41 @@ paths:
 options:
   cors: true
 tests: {}
+#  0,15,30,45 * * * * *
 tasks:
+  hubspot:
+    schedule: cron(* * * * *)
+    action: hubspot
+  quickbooks:
+    schedule: cron(* * * * *)
+    action: quickbooks
   refreshToken:
-    schedule: cron(0,15,30,45 * * * *)
+    schedule: cron(* * * * *)
     action: refreshToken
   googles_sheets:
-    schedule: cron(0 */12 * * *)
+    schedule: cron(* * * * *)
     action: retrieve
     accounts: {}
   linkedin:
-    schedule: cron(0 */12 * * *)
+    schedule: cron(* * * * *)
     action: linkedin
     accounts: {}
     input: {}
   gmail:
-    schedule: cron(0 */12 * * *)
+    schedule: cron(* * * * *)
     action: gmail
     accounts: {}
     input: {}
   calendar:
-    schedule: cron(0 */12 * * *)
+    schedule: cron(* * * * *)
     action: calendar
     accounts: {}
     input: {}
   salesforce:
-    schedule: cron(0 */12 * * *)
+    schedule: cron(* * * * *)
     action: salesforce
     accounts: {}
-  task5:
+  xero:
     schedule: cron(0 */12 * * *)
     action: xero
     accounts: {}
@@ -121,11 +128,11 @@ tasks:
     action: trello
     accounts: {}
   mailchimp:
-    schedule: cron(0 */12 * * *)
+    schedule: cron(* * * * *)
     action: mailchimp
     accounts: {}
   analytics:
-    schedule: cron(0 */12 * * *)
+    schedule: cron(* * * * *)
     action: google_analytics
     accounts: {}
 

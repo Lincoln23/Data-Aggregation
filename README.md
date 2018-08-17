@@ -13,6 +13,8 @@ Built using:
   - Oauth redirect URL is on hosted on port **3333**
   - Run `npm install` and `npm install -g datafire`
   - Start server by ` datafire serve --tasks true ` or by `datafire serve --port {port number}`
+  - Can also be started from `startup.js` using `Node startup.js` in the root directory 
+  - Follow this [guide][pm2] to setup the service with pm2
  
  
 ## **Authorization**
@@ -419,4 +421,5 @@ http://localhost:3000/hubspot?accountName=hubspot1
 [hubspot]:<https://developers.hubspot.com/> 
 [calendarID]:<https://docs.simplecalendar.io/find-google-calendar-id/>
 [quickbooksID]:<https://community.intuit.com/articles/1517319-how-do-i-find-my-company-id>
+[pm2]:<https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04>
   
