@@ -19,9 +19,9 @@ module.exports = new datafire.Action({
         let clientSecret;
         let accountName;
         config.database = await setup.getSchema("abc");
-        let database = new setup.database(config);
+        let databaseCred = new setup.database(config);
         try {
-            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret,AccountName FROM AccessKeys WHERE  IntegrationName = 'salesforce' and AccountName = ?", input.accountName).then(result => {
+            await databaseCred.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret,AccountName FROM AccessKeys WHERE  IntegrationName = 'salesforce' and AccountName = ?", input.accountName).then(result => {
                 result = result[0];
                 salesforce = null;
                 refreshToken = result.RefreshToken;
@@ -37,13 +37,18 @@ module.exports = new datafire.Action({
             }).catch(e => {
                 console.log("Error selecting from credentials for salesforce, Msg: " + e);
             });
-            if (salesforce == null) return {error: "Invalid credentials/accountName"};
-            console.log('in salesforce');
-            let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format
-            let newDataContact = 0; // set to true only if there is new data and it will update the last synced time
-            let newDataOpportunity = 0; // set to true only if there is new data and it will update the last synced time
-            let contactsSyncTime;
-            let opportunitySyncTime;
+        } finally {
+            databaseCred.close();
+        }
+        if (salesforce == null) return {error: "Invalid credentials/accountName"};
+        console.log('in salesforce');
+        let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format
+        let newDataContact = 0; // set to true only if there is new data and it will update the last synced time
+        let newDataOpportunity = 0; // set to true only if there is new data and it will update the last synced time
+        let contactsSyncTime;
+        let opportunitySyncTime;
+        let database = new setup.database(config);
+        try {
             if (!fs.existsSync('./SalesForce.txt')) {
                 fs.writeFile("SalesForce.txt", "SalesForce Synced for the first time", function (err) {
                     if (err) console.log(err);
@@ -72,6 +77,7 @@ module.exports = new datafire.Action({
                 return contactsSyncTime;
             }).then(async time => {
                 try {
+                    console.log("Using DatabaseCreds");
                     return await salesforce.version.query.get({ //dataFire
                         version: "v24.0",
                         q: "SELECT Id, Name,email, phone, Account.Name, Account.Id, contact.owner.Alias FROM Contact Where LastModifiedDate > " + time + " ORDER BY Name ASC",
@@ -107,7 +113,11 @@ module.exports = new datafire.Action({
                     });
                 }
             }).catch(async err => {
-                refresh.refreshKeys(accountName, clientId, clientSecret, refreshToken, "salesforce");
+                let regex = new RegExp('code 401');
+                if (err.toString().match(regex)) {
+                    console.log("Credentials error");
+                    refresh.refreshKeys(accountName, clientId, clientSecret, refreshToken, "salesforce");
+                }
                 console.log("Error caught in final catch block for Contacts, Message: " + err);
             });
 
@@ -153,7 +163,7 @@ module.exports = new datafire.Action({
             });
             return "SalesForce.js is running";
         } finally {
-            await database.close();
+            database.close();
         }
     },
 });
