@@ -153,7 +153,7 @@ module.exports = new datafire.Action({
             });
             return "SalesForce.js is running";
         } finally {
-            database.close();
+            await database.close();
         }
     },
 });

@@ -186,9 +186,9 @@ module.exports = new datafire.Action({
                     });
                 }
             });
-            return result;
+            return await result;
         } finally {
-            database.close();
+            await database.close();
         }
     },
 });

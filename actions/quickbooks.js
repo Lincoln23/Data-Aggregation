@@ -20,23 +20,27 @@ module.exports = new datafire.Action({
         // console.log(context.request.headers.host);
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
-        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'quickbooks' AND AccountName = ? ", input.accountName).then(result => {
-            result = result[0];
-            qbo = null;
-            qbo = new QuickBooks(result.ClientId, //client id
-                result.ClientSecret, //client secret
-                result.AccessToken, //OAuth Token
-                false, //token secret, dont need or oauth2
-                input.id, //company id
-                true, // use the sandbox?
-                false, // enable debugging?
-                23, // set minorversion
-                '2.0', //Oauth Version
-                result.RefreshToken //Refresh Token``
-            );
-        }).catch(e => {
-            console.log("Error selecting from credentials for quickbooks, Msg: " + e);
-        });
+        try {
+            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'quickbooks' AND AccountName = ? ", input.accountName).then(result => {
+                result = result[0];
+                qbo = null;
+                qbo = new QuickBooks(result.ClientId, //client id
+                    result.ClientSecret, //client secret
+                    result.AccessToken, //OAuth Token
+                    false, //token secret, dont need or oauth2
+                    input.id, //company id
+                    true, // use the sandbox?
+                    false, // enable debugging?
+                    23, // set minorversion
+                    '2.0', //Oauth Version
+                    result.RefreshToken //Refresh Token``
+                );
+            }).catch(e => {
+                console.log("Error selecting from credentials for quickbooks, Msg: " + e);
+            });
+        } finally {
+            await database.close();
+        }
         if (qbo == null) return {error: "Invalid credentials/accountName"};
         console.log('in quickbooks');
         const accounts = new Promise((resolve, reject) => {

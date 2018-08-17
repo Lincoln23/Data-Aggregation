@@ -66,7 +66,7 @@ let access = (code, id, secret, redirect_url, state2, integration, accountName) 
                     grant_type: "authorization_code",
                 }
         };
-        request(options, function (error, response, body) {
+        request(options, async (error, response, body) => {
             if (error) throw new Error(error);
             let jsonBody = JSON.parse(body);
             if (jsonBody.error) {
@@ -84,7 +84,7 @@ let access = (code, id, secret, redirect_url, state2, integration, accountName) 
                         console.log("Error inserting into AccessKeys, Message: " + err);
                     });
                 } finally {
-                    database.close();
+                    await database.close();
                 }
 
             }

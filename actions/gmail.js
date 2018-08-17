@@ -19,18 +19,23 @@ module.exports = new datafire.Action({
         // let contextHost = context.request.headers.host;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
-        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'gmail' AND AccountName= ?", input.accountName).then(result => {
-            result = result[0];
-            google_gmail = null;
-            google_gmail = require('@datafire/google_gmail').create({
-                access_token: result.AccessToken,
-                refresh_token: result.RefreshToken,
-                client_id: result.ClientId,
-                client_secret: result.ClientSecret,
+        try {
+            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'gmail' AND AccountName= ?", input.accountName).then(result => {
+                result = result[0];
+                google_gmail = null;
+                google_gmail = require('@datafire/google_gmail').create({
+                    access_token: result.AccessToken,
+                    refresh_token: result.RefreshToken,
+                    client_id: result.ClientId,
+                    client_secret: result.ClientSecret,
+                });
+            }).catch(e => {
+                console.log("Error selecting from credentials for gmail, Msg: " + e);
             });
-        }).catch(e => {
-            console.log("Error selecting from credentials for gmail, Msg: " + e);
-        });
+        } finally {
+            await database.close();
+        }
+
         if (google_gmail === null) {
             return {
                 error: "Invalid credentials/AccountName"

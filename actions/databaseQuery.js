@@ -53,9 +53,8 @@ let insertIntoDb = async (result, dbType,) => {
             console.log("Error INSERTING into externalDatabase, Msg: " + err);
         });
     } finally {
-        database.close();
+        await database.close();
     }
-
 };
 module.exports = new datafire.Action({
     inputs: [{

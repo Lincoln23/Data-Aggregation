@@ -29,18 +29,23 @@ module.exports = new datafire.Action({
       // console.log(context.request.headers.host);
       config.database = await setup.getSchema("abc");
       let database = new setup.database(config);
-      await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'linkedin' AND AccountName = ? ", input.accountName).then(result => {
-          result = result[0];
-          linkedin = null;
-          linkedin = require('@datafire/linkedin').create({
-              access_token: result.AccessToken,
-              refresh_token: result.RefreshToken,
-              client_id: result.ClientId,
-              client_secret: result.ClientSecret,
+      try {
+          await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'linkedin' AND AccountName = ? ", input.accountName).then(result => {
+              result = result[0];
+              linkedin = null;
+              linkedin = require('@datafire/linkedin').create({
+                  access_token: result.AccessToken,
+                  refresh_token: result.RefreshToken,
+                  client_id: result.ClientId,
+                  client_secret: result.ClientSecret,
+              });
+          }).catch(e => {
+              console.log("Error selecting from credentials for linkedin, Msg: " + e);
           });
-      }).catch(e => {
-          console.log("Error selecting from credentials for linkedin, Msg: " + e);
-      });
+      } finally {
+          await database.close();
+      }
+
       if (linkedin == null) return {error: "Invalid credentials/accountName"};
     console.log('in linkedin');
     //gets the Company's history

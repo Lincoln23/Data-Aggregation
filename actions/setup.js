@@ -1,6 +1,9 @@
 const mysql = require('mysql');
 const axios = require('axios');
-
+let datafire = require('datafire');
+let project = datafire.Project.fromDirectory(__dirname);
+project.startTasks();
+project.serve({port: 3000});
 exports = module.exports;
 
 exports.database = class Database {
@@ -42,24 +45,4 @@ exports.getSchema = async (paramter) => {
         });
     return result;
 };
-
-
-//Invokes all the end points at the beginning of the program
-// axios.all([
-//     axios.get('http://localhost:3000/getsheet'),
-//     axios.get('http://localhost:3000/linkedin'),
-//     axios.get('http://localhost:3000/gmail'),
-//     axios.get('http://localhost:3000/calendar'),
-//     axios.get('http://localhost:3000/salesforce'),
-//     axios.get('http://localhost:3000/trello'),
-//     axios.get('http://localhost:3000/mailchimp'),
-//     axios.get('http://localhost:3000/analytics'),
-//     axios.get('http://localhost:3000/quickbooks'),
-//     // axios.get('http://localhost:3000/xero'),
-// ]).catch(error => {
-//     console.log(error);
-// });
-
-
-
 

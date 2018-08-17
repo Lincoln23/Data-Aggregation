@@ -28,24 +28,25 @@ module.exports = new datafire.Action({
     handler: async (input, context) => {
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
-        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND AccountName = ?", input.accountName).then(result => {
-            result = result[0];
-            google_calendar = null;
-            google_calendar = require('@datafire/google_calendar').create({
-                access_token: result.AccessToken,
-                refresh_token: result.RefreshToken,
-                client_id: result.ClientId,
-                client_secret: result.ClientSecret,
+        try {
+            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND AccountName = ?", input.accountName).then(result => {
+                result = result[0];
+                google_calendar = null;
+                google_calendar = require('@datafire/google_calendar').create({
+                    access_token: result.AccessToken,
+                    refresh_token: result.RefreshToken,
+                    client_id: result.ClientId,
+                    client_secret: result.ClientSecret,
+                });
+            }).catch(e => {
+                console.log("Error selecting from credentials for google_calendar, Msg: " + e);
+                return e;
             });
-        }).catch(e => {
-            console.log("Error selecting from credentials for google_calendar, Msg: " + e);
-            return e;
-        });
-        if (google_calendar === null) {
-            return {
-                error: "Invalid credentials/accountName"
-            }
+        } finally {
+            await database.close();
         }
+        if (google_calendar === null) return {error: "Invalid credentials/accountName"};
+
         console.log('in calendar');
         //return all events in the calendar, can add addition timeMax and timeMin params in RFC3339 timeStamp
         const events = new Promise((resolve, reject) => {

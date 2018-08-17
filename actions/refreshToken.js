@@ -54,7 +54,7 @@ let refreshKeys = async (accountName, id, secret, refreshToken, integration) => 
                         console.log("Error updating refreshTokens in AccessKeys, Message: " + err + " Integration: " + integration);
                     });
                 } finally {
-                    database.close();
+                    await database.close();
                 }
 
             }

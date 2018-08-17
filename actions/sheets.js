@@ -25,20 +25,8 @@ module.exports = new datafire.Action({
         // console.log(context.request.headers.host);
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
-        await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND AccountName = ?", input.accountName).then(result => {
-            result = result[0];
-            google_sheets = null;
-            google_sheets = require('@datafire/google_sheets').create({
-                access_token: result.AccessToken,
-                refresh_token: result.RefreshToken,
-                client_id: result.ClientId,
-                client_secret: result.ClientSecret,
-            });
-        }).catch(e => {
-            console.log("Error selecting from credentials for google_sheets, Msg: " + e);
-        });
-        if (google_sheets == null) return {error: "Invalid credentials/accountName"};
         try {
+            if (google_sheets == null) return {error: "Invalid credentials/accountName"};
             console.log('in sheets');
             let startRow = 1;
             let endRow = 9999;

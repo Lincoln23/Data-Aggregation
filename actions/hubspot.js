@@ -14,18 +14,19 @@ module.exports = new datafire.Action({
         let res = [];
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
-        await database.query("SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND AccountName = ?", input.accountName).then(result => {
-            result = result[0];
-            hubspot = null;
-            hubspot = new Hubspot({accessToken: result.AccessToken});
-        }).catch(e => {
-            console.log("Error selecting from credentials for hubspot, Msg: " + e);
-        });
-        if (hubspot === null) {
-            return {
-                error: "Invalid credentials/AccountName"
-            }
+        try {
+            await database.query("SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND AccountName = ?", input.accountName).then(result => {
+                result = result[0];
+                hubspot = null;
+                hubspot = new Hubspot({accessToken: result.AccessToken});
+            }).catch(e => {
+                console.log("Error selecting from credentials for hubspot, Msg: " + e);
+            });
+        } finally {
+            await database.close();
         }
+        if (hubspot === null) return {error: "Invalid credentials/AccountName"};
+
         console.log("in hubspot");
         let contactOptions = {
             count: 100
@@ -33,7 +34,7 @@ module.exports = new datafire.Action({
         let companyOptions = {
             limit: 250,
             Offset: "",
-            properties: ["name", "website"]
+            properties: ["name", "website"],
         };
         await hubspot.contacts.get(contactOptions)
             .then(results => {
