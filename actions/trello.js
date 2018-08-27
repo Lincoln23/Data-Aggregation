@@ -65,6 +65,7 @@ module.exports = new datafire.Action({
                     "description": boards[key1].desc,
                     "closed": boards[key1].closed,
                     "dateLastActiviy": boards[key1].dateLastActivity,
+                    "dateLastView": boards[key1].dateLastView,
                     "url": boards[key1].url,
                 };
                 //looping through the Cards array in listsAndCards

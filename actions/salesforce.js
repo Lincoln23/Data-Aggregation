@@ -77,7 +77,6 @@ module.exports = new datafire.Action({
                 return contactsSyncTime;
             }).then(async time => {
                 try {
-                    console.log("Using DatabaseCreds");
                     return await salesforce.version.query.get({ //dataFire
                         version: "v24.0",
                         q: "SELECT Id, Name,email, phone, Account.Name, Account.Id, contact.owner.Alias FROM Contact Where LastModifiedDate > " + time + " ORDER BY Name ASC",
