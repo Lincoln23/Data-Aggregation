@@ -125,7 +125,6 @@ module.exports = new datafire.Action({
 
         result.forEach(async element => {
             let database2 = new setup.database(config);
-            console.log("Database opened");
             try {
                 if (element.Identifier === "List") {
                     let createTableIfNotEXISTS1 = "CREATE TABLE IF NOT EXISTS MailChimpLists( id int(11) unsigned auto_increment primary key, ListName varchar(1024) , Description varchar(1024) , DateCreated varchar(1024) , Language varchar(255) , Url varchar(1024))";
@@ -208,10 +207,9 @@ module.exports = new datafire.Action({
                     await Promise.all([one, two, three, four, five]);
                 }
             } finally {
-                console.log("Database closed");
-                database2.close();
+                await database2.close();
             }
         });
-        return await result;
+        return result;
     },
 });

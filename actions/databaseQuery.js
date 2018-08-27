@@ -46,15 +46,18 @@ let mongoTest = (host, database, query) => {
 let insertIntoDb = async (result, dbType,) => {
     config.database = await setup.getSchema("abc");
     let database = new setup.database(config);
-    try {
+    let createTableIfDoesNotExists = "CREATE TABLE IF NOT EXISTS externalDatabase(id int auto_increment primary key , Date datetime , Everything text , DatabaseType varchar(100) , constraint externalDatabase_id_uindex unique (id))";
+    database.query(createTableIfDoesNotExists).catch(err => {
+        console.log("Error creating table externalDatabase Err " + err);
+    }).then(() => {
         let sql = "INSERT INTO externalDatabase (Date, Everything, DatabaseType) VALUES (?,?,?)";
         let sqlValue = [new Date(), JSON.stringify(result), dbType];
-        await database.query(sql, sqlValue).catch(err => {
+        database.query(sql, sqlValue).catch(err => {
             console.log("Error INSERTING into externalDatabase, Msg: " + err);
         });
-    } finally {
-        await database.close();
-    }
+    }).then(() => {
+        database.close();
+    });
 };
 module.exports = new datafire.Action({
     inputs: [{
