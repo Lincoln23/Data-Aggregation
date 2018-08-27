@@ -26,15 +26,20 @@ module.exports = new datafire.Action({
             await database.close();
         }
         if (hubspot === null) return {error: "Invalid credentials/AccountName"};
-
         console.log("in hubspot");
-        let contactOptions = {
-            count: 100
-        };
+
         let companyOptions = {
             limit: 250,
             Offset: "",
             properties: ["name", "website"],
+        };
+        await hubspot.companies.get(companyOptions).then(results => {
+            res.push(results);
+        }).catch(err => {
+            console.log(err);
+        });
+        let contactOptions = {
+            count: 100
         };
         await hubspot.contacts.get(contactOptions)
             .then(results => {
@@ -42,11 +47,6 @@ module.exports = new datafire.Action({
             }).catch(err => {
                 console.error(err)
             });
-        await hubspot.companies.get(companyOptions).then(results => {
-            res.push(results);
-        }).catch(err => {
-            console.log(err);
-        });
         return res;
     },
 });
