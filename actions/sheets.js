@@ -50,11 +50,16 @@ module.exports = new datafire.Action({
                     });
 
                     rows.forEach(async json => {
-                        let sql = 'INSERT INTO GoogeSheetsContacts (Name, Organization, Phone, Email, Location) VALUES (?,?,?,?,?)';
-                        let values = [json.name, json.organization, json.phone, json.Email, json.City];
-                        database.query(sql, values).catch(e => {
-                            console.log("Error inserting into GoogeSheetsContacts, Message: " + e);
-                        });
+                        let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS SalesForceOpportunity(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, Name varchar(255), Organization varchar(255), Phone varchar(255), Email varchar(255), Location varchar(255))";
+                        database.query(createTableIfNotExist).catch(err => {
+                            console.log("Error creating table SalesForceOpportunity Msg: " + err);
+                        }).then(() => {
+                            let sql = 'INSERT INTO GoogeSheetsContacts (Name, Organization, Phone, Email, Location) VALUES (?,?,?,?,?)';
+                            let values = [json.name, json.organization, json.phone, json.Email, json.City];
+                            database.query(sql, values).catch(e => {
+                                console.log("Error inserting into GoogeSheetsContacts, Message: " + e);
+                            });
+                        })
                     });
                     return rows;
                 })

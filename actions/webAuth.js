@@ -78,10 +78,15 @@ let access = (code, id, secret, redirect_url, state2, integration, accountName) 
                 }
                 let database = new setup.database(config);
                 try {
-                    let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
-                    let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
-                    database.query(sql, values).catch(err => {
-                        console.log("Error inserting into AccessKeys, Message: " + err);
+                    let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS AccessKeys(AccountName varchar(150) NOT NULL PRIMARY KEY, IntegrationName varchar(255), AccessToken varchar(1024), RefreshToken varchar(1024), ClientId varchar(1024), ClientSecret varchar(1024), Expiry int(11), ExpiryDate datetime, Active tinyint(1))";
+                    await database.query(createTableIfNotExist).catch(err => {
+                        console.log("Error creating table AccessKey Msg: " + err);
+                    }).then(() => {
+                        let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+                        let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
+                        database.query(sql, values).catch(err => {
+                            console.log("Error inserting into AccessKeys, Message: " + err);
+                        });
                     });
                 } finally {
                     await database.close();

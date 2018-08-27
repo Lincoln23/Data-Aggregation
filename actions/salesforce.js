@@ -97,11 +97,17 @@ module.exports = new datafire.Action({
                             "Alias": null
                         }
                     }
-                    let sqlContact = 'INSERT INTO SalesForceContact (ContactId, Name, Email, Phone,AccountName, AccountID,Alias) VALUES (?,?,?,?,?,?,?)';
-                    let contactValues = [element.Id, element.Name, element.Email, element.Phone, element.Account.Name, element.Account.Id, element.Owner.Alias];
-                    database.query(sqlContact, contactValues).catch(e => {
-                        console.log("Error in inserting into SalesForceContact, Message: " + e);
-                    });
+                    let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS SalesForceContact(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, ContactId varchar(1024), Name varchar(1024),Email varchar(1024), Phone varchar(1024), AccountName varchar(1024), AccountID varchar(1024), Alias varchar(1024))";
+                    database.query(createTableIfNotExist).create(err => {
+                        console.log("Error creating table SalesForceContact Msg: " + err);
+                    }).then(() => {
+                        let sqlContact = 'INSERT INTO SalesForceContact (ContactId, Name, Email, Phone,AccountName, AccountID,Alias) VALUES (?,?,?,?,?,?,?)';
+                        let contactValues = [element.Id, element.Name, element.Email, element.Phone, element.Account.Name, element.Account.Id, element.Owner.Alias];
+                        database.query(sqlContact, contactValues).catch(e => {
+                            console.log("Error in inserting into SalesForceContact, Message: " + e);
+                        });
+                    })
+ 
                 });
             }).then(async () => {
                 if (newDataContact) { //only update time if there is new data
@@ -143,11 +149,17 @@ module.exports = new datafire.Action({
                             "Name": null
                         }
                     }
-                    let sqlOpportunity = 'INSERT INTO SalesForceOpportunity (OpportunityId, Name, AccountName, AccountID,Amount, CreatedDate,CloseDate,StageName,ExpectedRevenue) VALUES (?,?,?,?,?,?,?,?,?)';
-                    let opportunityValues = [value.Id, value.Name, value.Account.Name, value.AccountId, value.Amount, value.CreatedDate, value.CloseDate, value.StageName, value.ExpectedRevenue];
-                    database.query(sqlOpportunity, opportunityValues).catch(e => {
-                        console.log("Error in inserting into SalesForceOpportunity, Message: " + e);
-                    });
+                    let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS SalesForceOpportunity(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, OpportunityId varchar(255), Name varchar(1024), AccountName varchar(255), AccountID varchar(255), Amount float, CloseDate varchar(255), CreatedDate varchar(255), StageName varchar(255), ExpectedRevenue varchar(255))";
+                    database.query(createTableIfNotExist).catch(err => {
+                        console.log("Error creating table SalesForceOpportunity Msg: " + err);
+                    }).then(() => {
+                        let sqlOpportunity = 'INSERT INTO SalesForceOpportunity (OpportunityId, Name, AccountName, AccountID,Amount, CreatedDate,CloseDate,StageName,ExpectedRevenue) VALUES (?,?,?,?,?,?,?,?,?)';
+                        let opportunityValues = [value.Id, value.Name, value.Account.Name, value.AccountId, value.Amount, value.CreatedDate, value.CloseDate, value.StageName, value.ExpectedRevenue];
+                        database.query(sqlOpportunity, opportunityValues).catch(e => {
+                            console.log("Error in inserting into SalesForceOpportunity, Message: " + e);
+                        });
+                    })
+   
                 });
             }).then(async () => {
                 if (newDataOpportunity) { //only update time if there is new data
