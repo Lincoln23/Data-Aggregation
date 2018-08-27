@@ -37,6 +37,7 @@ module.exports = new datafire.Action({
             res.push(results);
         }).catch(err => {
             console.log(err);
+            res.push(err);
         });
         let contactOptions = {
             count: 100
