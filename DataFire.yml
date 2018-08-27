@@ -1,4 +1,5 @@
 actions:
+  activate: ./actions/activate.js
   create: ./actions/create.js
   retrieve: ./actions/sheets.js
   linkedin: ./actions/linkedin.js
@@ -18,6 +19,9 @@ actions:
   hubspot: ./actions/hubspot.js
   databaseQuery: ./actions/databaseQuery.js
 paths:
+  /activate:
+    get:
+      action: activate
   /databaseQuery:
     get:
       action: databaseQuery
