@@ -1,10 +1,22 @@
 let winston = require('winston');
+const MESSAGE = Symbol.for('message');
+let path = require('path');
 
+let logPath = __dirname;
 
 let options = {
-    file: {
+    errorLogs: {
         level: 'info',
-        filename: `../datafire.log`,
+        filename: path.join(logPath, 'errors.log'),
+        handleExceptions: true,
+        json: true,
+        maxsize: 5242880, // 5MB
+        maxFiles: 5,
+        colorize: false,
+    },
+    accessLogs: {
+        level: 'info',
+        filename: path.join(logPath, 'access.log'),
         handleExceptions: true,
         json: true,
         maxsize: 5242880, // 5MB
@@ -19,21 +31,30 @@ let options = {
     },
 };
 
-// instantiate a new Winston Logger with the settings defined above
-let logger = new winston.Logger({
-    transports: [
-        new winston.transports.File(options.file),
-        new winston.transports.Console(options.console)
-    ],
-    exitOnError: false, // do not exit on handled exceptions
-});
-
-// create a stream object with a 'write' function that will be used by `morgan`
-logger.stream = {
-    write: function (message, encoding) {
-        // use the 'info' log level so the output will be picked up by both transports (file and console)
-        logger.info(message);
-    },
+const jsonFormatter = (logEntry) => {
+    const base = {timestamp: new Date()};
+    const json = Object.assign(base, logEntry);
+    logEntry[MESSAGE] = JSON.stringify(json);
+    return logEntry;
 };
 
-module.exports = logger;
+const errorLog = winston.createLogger({
+    format: winston.format(jsonFormatter)(),
+    transports: [
+        new winston.transports.File(options.errorLogs),
+        new winston.transports.Console(options.console)
+    ]
+});
+
+const accessLog = winston.createLogger({
+    format: winston.format(jsonFormatter)(),
+    transports: [
+        new winston.transports.File(options.accessLogs),
+        new winston.transports.Console(options.console)
+    ]
+});
+
+module.exports = {
+    errorLog: errorLog,
+    accessLog: accessLog,
+};
