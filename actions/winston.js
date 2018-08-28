@@ -15,7 +15,7 @@ let options = {
         colorize: false,
     },
     accessLogs: {
-        level: 'info',
+        level: 'silly',
         filename: path.join(logPath, 'access.log'),
         handleExceptions: true,
         json: true,
@@ -24,7 +24,7 @@ let options = {
         colorize: false,
     },
     console: {
-        level: 'debug',
+        level: 'silly',
         handleExceptions: true,
         json: false,
         colorize: true,
