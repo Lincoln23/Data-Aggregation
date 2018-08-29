@@ -2,17 +2,18 @@
 let datafire = require('datafire');
 const setup = require('./setup');
 let config = require('./config.json');
+let logger = require('./winston');
 let mailchimp;
 
 // dc : "the extension at the end of the api key"
 let insert = (createTable, query, values, database) => {
     return new Promise((resolve, reject) => {
         database.query(createTable).catch(err => {
-            console.log("Error creating Table Msg: " + err);
+            logger.errorLog.error("Error creating Table Msg: " + err);
             reject(err);
         }).then(() => {
             database.query(query, values).catch(err => {
-                console.log("Error inserting into Table, Msg: " + err);
+                logger.errorLog.error("Error inserting into Table, Msg: " + err);
                 reject(err);
             });
         }).then(() => {
@@ -30,22 +31,30 @@ module.exports = new datafire.Action({
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
-            await database.query("SELECT api_key FROM ApiKeys WHERE IntegrationName = 'mailchimp' AND AccountName = ? ", input.accountName).then(result => {
+            logger.accessLog.info("Getting credentials in mailchimp for " + input.accountName);
+            await database.query("SELECT api_key FROM ApiKeys WHERE IntegrationName = 'mailchimp' AND Active = 1 AND AccountName = ? ", input.accountName).then(result => {
                 result = result[0];
                 mailchimp = null;
                 mailchimp = require('@datafire/mailchimp').create({
                     apiKey: result.api_key,
                 });
             }).catch(e => {
-                console.log("Error selecting from credentials for mailchimp, Msg: " + e);
+                logger.errorLog.error("Error selecting from credentials in mailchimp for " + input.accountName + " " + e);
             });
         } finally {
-            await database.close();
+            try {
+                await database.close();
+            } catch (e) {
+                logger.errorLog.error("1. Error closing database in mailchimp " + e);
+            }
         }
-        if (mailchimp == null) return {
-            error: "Invalid credentials/accountName"
-        };
-        console.log('in mailchimp');
+        if (mailchimp == null) {
+            logger.errorLog.warn("Invalid credentials for " + input.accountName);
+            return {
+                error: "Invalid credentials/accountName"
+            };
+        }
+        logger.accessLog.verbose("Syncing mailchimp for " + input.accountName);
         let result = [];
         let resultList = await mailchimp.getLists({
             dc: "us18",
@@ -207,7 +216,11 @@ module.exports = new datafire.Action({
                     await Promise.all([one, two, three, four, five]);
                 }
             } finally {
-                await database2.close();
+                try {
+                    await database2.close();
+                } catch (e) {
+                    logger.errorLog.error("2. Error closing database in mailchimp " + e);
+                }
             }
         });
         return result;

@@ -2,6 +2,7 @@
 const datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
+let logger = require('./winston');
 let trello;
 
 //BUG: Database will close before it is finished inserting
@@ -19,7 +20,8 @@ module.exports = new datafire.Action({
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
-            await database.query("SELECT api_key, api_token FROM ApiKeys WHERE IntegrationName = 'trello' AND AccountName = ?", input.accountName).then(result => {
+            logger.accessLog.info("Getting credentials in trello for " + input.accountName);
+            await database.query("SELECT api_key, api_token FROM ApiKeys WHERE IntegrationName = 'trello' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
                 trello = null;
                 trello = require('@datafire/trello').create({
@@ -27,13 +29,20 @@ module.exports = new datafire.Action({
                     api_token: result.api_token
                 });
             }).catch(e => {
-                console.log("Error selecting from credentials for trello, Msg: " + e);
+                logger.errorLog.error("Error selecting from credentials in trello for " + input.accountName + " " + e);
             });
         } finally {
-            await database.close();
+            try {
+                await database.close();
+            } catch (e) {
+                logger.errorLog.error("Error closing database in trello.js " + e);
+            }
         }
-        if (trello == null) return {error: "Invalid credentials/accountName"};
-        console.log('in trello');
+        if (trello == null) {
+            logger.errorLog.warn("Invalid credentails for " + input.accountName);
+            return {error: "Invalid credentials/accountName"};
+        }
+        logger.accessLog.verbose("Syncing trello for " + input.accountName);
         let result = [];
         // get all available boards to the user
         let boards = await trello.getMembersBoardsByIdMember({

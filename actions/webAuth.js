@@ -6,7 +6,8 @@ const setup = require('./setup');
 let config = require('./config.json');
 let app = express();
 let webUrl = require('../auth');
-app.listen(3333, () => console.log('Listening for redirect URL on port: 3333'));
+let logger = require('./winston');
+app.listen(3333, () => logger.accessLog.info('Listening for redirect URL on port: 3333'));
 
 //WARN need to have integration,clientId ... variables here or else they won't update in the app.get method;
 let state = null;
@@ -70,7 +71,8 @@ let access = (code, id, secret, redirect_url, state2, integration, accountName) 
             if (error) throw new Error(error);
             let jsonBody = JSON.parse(body);
             if (jsonBody.error) {
-                console.log(jsonBody.error);
+                logger.errorLog.error("Error in post request in webAuth " + jsonBody.error);
+                return jsonBody.error;
             } else {
                 let date = null;
                 if (jsonBody.expires_in != undefined) {
@@ -80,16 +82,20 @@ let access = (code, id, secret, redirect_url, state2, integration, accountName) 
                 try {
                     let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS AccessKeys(AccountName varchar(150) NOT NULL PRIMARY KEY, IntegrationName varchar(255), AccessToken varchar(1024), RefreshToken varchar(1024), ClientId varchar(1024), ClientSecret varchar(1024), Expiry int(11), ExpiryDate datetime, Active tinyint(1))";
                     await database.query(createTableIfNotExist).catch(err => {
-                        console.log("Error creating table AccessKey Msg: " + err);
+                        logger.errorLog.error("Error creating table AccessKey " + err);
                     }).then(() => {
                         let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
                         let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
                         database.query(sql, values).catch(err => {
-                            console.log("Error inserting into AccessKeys, Message: " + err);
+                            logger.errorLog.error("Error inserting into AccessKeys for " + accountName + " " + err);
                         });
                     });
                 } finally {
-                    await database.close();
+                    try {
+                        await database.close();
+                    } catch (e) {
+                        logger.errorLog.error("Error closing database in access() in webAuth.js " + e);
+                    }
                 }
 
             }
@@ -137,7 +143,7 @@ module.exports = new datafire.Action({
         clientId = input.client_id;
         clientSecret = input.client_secret;
         accountName = input.accountName;
-        console.log("Web Oauth integration for: " + integration);
+        logger.accessLog.verbose("Web Oauth integration for: " + integration + " for " + input.accountName);
         let code = null;
         let state2 = null;
         config.database = await setup.getSchema("abc"); // use context to get url here

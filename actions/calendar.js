@@ -2,6 +2,7 @@
 let datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
+let logger = require('./winston');
 let google_calendar;
 module.exports = new datafire.Action({
     inputs: [{
@@ -29,7 +30,8 @@ module.exports = new datafire.Action({
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
-            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND AccountName = ?", input.accountName).then(result => {
+            logger.accessLog.info("Getting Credentials in google_calendar for " + input.accountName);
+            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
                 google_calendar = null;
                 google_calendar = require('@datafire/google_calendar').create({
@@ -39,15 +41,22 @@ module.exports = new datafire.Action({
                     client_secret: result.ClientSecret,
                 });
             }).catch(e => {
-                console.log("Error selecting from credentials for google_calendar, Msg: " + e);
+                logger.errorLog.error("Error selecting credentials in google_calendar for " + input.accountName + " " + e);
                 return e;
             });
         } finally {
-            await database.close();
+            try {
+                await database.close();
+            } catch (e) {
+                logger.errorLog.error("Error closing database in calendar.js " + e);
+            }
         }
-        if (google_calendar === null) return {error: "Invalid credentials/accountName"};
+        if (google_calendar === null) {
+            logger.errorLog.warn("Invalid credentials in google_calendar for " + input.accountName);
+            return {error: "Invalid credentials/accountName"};
+        }
 
-        console.log('in calendar');
+        logger.accessLog.verbose("Syncing in google_calendar for " + input.accountName);
         //return all events in the calendar, can add addition timeMax and timeMin params in RFC3339 timeStamp
         const events = new Promise((resolve, reject) => {
             const temp = google_calendar.events.list({
@@ -75,6 +84,7 @@ module.exports = new datafire.Action({
         try {
             return await Promise.all([events, freeBusy]);
         } catch (e) {
+            logger.errorLog.error("Error in google_calendar " + e);
             return e;
         }
     },

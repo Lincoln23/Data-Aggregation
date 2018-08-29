@@ -3,60 +3,72 @@ let datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
 let MongoClient = require('mongodb').MongoClient;
+let logger = require('./winston');
 //TODO orcale,microsoft sql, postgres
 
-let sqlTest = (host, user, password, database, query) => {
+let sqlTest = async (host, user, password, database, query) => {
     let options = {
         "host": host,
         "user": user,
         "password": password,
         "database": database,
     };
+    logger.accessLog.info("Connect/Query to MySQL " + host);
     let externalDatabase = new setup.database(options);
-    return new Promise((resolve, reject) => {
-        externalDatabase.query(query).then(result => {
-            resolve(result);
+    try {
+        return await externalDatabase.query(query);
+    } finally {
+        try {
             externalDatabase.close();
-        }).catch(err => {
-            reject(err);
-            externalDatabase.close();
-        });
-    });
+        } catch (e) {
+            logger.errorLog.error("Error closing database in databaseQuery for " + host + " " + e);
+        }
+
+    }
 };
 
+
+
 let mongoTest = (host, database, query) => {
+    logger.accessLog.info("Connect/Query to MongoDB " + host);
     return new Promise((resolve, reject) => {
         MongoClient.connect(host, (err, client) => {
             if (err) {
                 reject(err);
-                client.close();
-            }
-            const dbo = client.db(database);
-            dbo.collection(query).find({}).toArray((err, result) => {
-                if (err) {
-                    reject(err);
+            } else {
+                const dbo = client.db(database);
+                dbo.collection(query).find({}).toArray((err, result) => {
+                    if (err) {
+                        logger.errorLog.error("Error querying mongoDB for " + host + " " + err);
+                        reject(err);
+                        client.close();
+                    }
+                    resolve(result);
                     client.close();
-                }
-                resolve(result);
-                client.close();
-            });
+                });
+            }
         });
     });
 };
 let insertIntoDb = async (result, dbType,) => {
     config.database = await setup.getSchema("abc");
     let database = new setup.database(config);
+    logger.accessLog.info("Inserting into externalDatabase for " + dbType);
     let createTableIfDoesNotExists = "CREATE TABLE IF NOT EXISTS externalDatabase(id int auto_increment primary key , Date datetime , Everything text , DatabaseType varchar(100) , constraint externalDatabase_id_uindex unique (id))";
     database.query(createTableIfDoesNotExists).catch(err => {
-        console.log("Error creating table externalDatabase Err " + err);
+        logger.errorLog.error("Error creating table externalDatabase " + err);
     }).then(() => {
         let sql = "INSERT INTO externalDatabase (Date, Everything, DatabaseType) VALUES (?,?,?)";
         let sqlValue = [new Date(), JSON.stringify(result), dbType];
         database.query(sql, sqlValue).catch(err => {
-            console.log("Error INSERTING into externalDatabase, Msg: " + err);
+            logger.errorLog.error("Error INSERTING into externalDatabase, Msg: " + err);
         });
-    }).then(() => {
-        database.close();
+    }).then(async () => {
+        try {
+            await database.close();
+        } catch (e) {
+            logger.errorLog.warn("Error closing database connecting in databaseQuery " + e);
+        }
     });
 };
 module.exports = new datafire.Action({
@@ -90,17 +102,35 @@ module.exports = new datafire.Action({
         let res;
         if (input.stage === "test") {
             if (input.type === "mysql") {
-                res = await sqlTest(input.host, input.user, input.password, input.database, input.query);
+                try {
+                    res = await sqlTest(input.host, input.user, input.password, input.database, input.query);
+                } catch (e) {
+                    logger.errorLog.error("Error testing MySQL database " + input.host + " " + e);
+                }
             } else if (input.type === "mongo") {
-                res = await mongoTest(input.host, input.database, input.query);
+                try {
+                    res = await mongoTest(input.host, input.database, input.query);
+                } catch (e) {
+                    logger.errorLog.error("Error testing mongo database " + input.host + " " + e);
+                }
             }
         } else if (input.stage === "save") {
             if (input.type === "mysql") {
-                let result = await sqlTest(input.host, input.user, input.password, input.database, input.query);
-                insertIntoDb(result, input.type);
+                res = "inserting into database for " + input.host;
+                try {
+                    let result = await sqlTest(input.host, input.user, input.password, input.database, input.query);
+                    insertIntoDb(result, input.type);
+                } catch (e) {
+                    logger.errorLog.error("Error saving MySQL database " + input.host + " " + e);
+                }
             } else if (input.type === "mongo") {
-                let result = await mongoTest(input.host, input.database, input.query);
-                insertIntoDb(result, input.type)
+                res = "inserting into database for " + input.host;
+                try {
+                    let result = await mongoTest(input.host, input.database, input.query);
+                    insertIntoDb(result, input.type)
+                } catch (e) {
+                    logger.errorLog.error("Error saving mongo database " + input.host + " " + e);
+                }
             }
 
         }

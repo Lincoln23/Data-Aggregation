@@ -4,6 +4,7 @@ const datafire = require('datafire');
 let webUrl = require('../auth');
 const setup = require('./setup.js');
 let config = require('./config.json');
+let logger = require('./winston');
 
 // let database;
 let integration;
@@ -13,7 +14,7 @@ let clientID;
 let clientSecret;
 
 let refreshKeys = async (accountName, id, secret, refreshToken, integration) => {
-    console.log("Refreshing: " + integration);
+    logger.accessLog.info("Refreshing " + integration + " for " + accountName);
     let tokenUrl = webUrl[integration].refresh;
     let options = {
         method: 'POST',
@@ -36,7 +37,7 @@ let refreshKeys = async (accountName, id, secret, refreshToken, integration) => 
             if (error) throw error;
             let jsonBody = JSON.parse(body);
             if (jsonBody.error) {
-                console.log(jsonBody.error);
+                logger.errorLog.error("Error in post request of refresh token" + jsonBody.error);
                 return jsonBody.error;
             } else {
                 if (integration === 'gmail' || integration === 'google_sheets' || integration === 'google_calendar' || integration === 'google_analytics' || integration === "salesforce") {
@@ -51,16 +52,20 @@ let refreshKeys = async (accountName, id, secret, refreshToken, integration) => 
                     let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
                     let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
                     await database.query(sql, values).catch(err => {
-                        console.log("Error updating refreshTokens in AccessKeys, Message: " + err + " Integration: " + integration);
+                        logger.errorLog.error("Error updating refreshTokens in  " + integration + " for " + accountName);
                     });
                 } finally {
-                    await database.close();
+                    try {
+                        await database.close();
+                    } catch (e) {
+                        logger.errorLog.error("Error closing database in refreshToken in refreshKeys() " + e);
+                    }
                 }
 
             }
         });
     } catch (e) {
-        console.log("Error in sending POST request in refreshToken.js, Msg: " + e);
+        logger.errorLog.error("Error in sending POST request in refreshToken for " + accountName);
     }
 
 
@@ -85,17 +90,22 @@ module.exports = new datafire.Action({
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
+            logger.accessLog.info("Selecting which tokens needs to be refreshed");
             await database.query("SELECT AccountName,IntegrationName, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15").then(async result => {
                 if (result.length === 0) {
-                    console.log("No integrations needs to be refreshed");
+                    logger.accessLog.info("No integrations needs to be refreshed");
                     return "No AccessKeys needs to be refreshed";
                 }
                 refresh = result;
             }).catch((err) => {
-                console.log("Error selecting refreshTimes from AccessKeys, Message: " + err);
+                logger.errorLog.error("Error selecting refreshTimes from AccessKeys " + err);
             });
         } finally {
-            database.close();
+            try {
+                await database.close();
+            } catch (e) {
+                logger.errorLog.error("Error closing database in refreshToken in handler " + e);
+            }
         }
         if (refresh !== undefined) {
             await refresh.forEach(async value => {

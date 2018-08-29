@@ -2,6 +2,7 @@
 let datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
+let logger = require('./winston');
 let google_sheets;
 
 module.exports = new datafire.Action({
@@ -22,7 +23,7 @@ module.exports = new datafire.Action({
         type: "string",
         title: "organization"
     },
-        // add your columns in order above this line
+        // add your columns in order from left to right above this line
         {
             type: "string",
             title: "spreadsheetId",
@@ -33,11 +34,12 @@ module.exports = new datafire.Action({
             default: "sheets1"
         }],
     handler: async (input, context) => {
-        // let contextHost = context.request.headers.host;
+        console.log(input);
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
-            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND AccountName = ?", input.accountName).then(result => {
+            logger.accessLog.info("Getting Credentials in google_Sheets for " + input.accountName);
+            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
                 google_sheets = null;
                 google_sheets = require('@datafire/google_sheets').create({
@@ -47,16 +49,23 @@ module.exports = new datafire.Action({
                     client_secret: result.ClientSecret,
                 });
             }).catch(e => {
-                console.log("Error selecting from credentials for google_sheets, Msg: " + e);
+                logger.errorLog.error("Error selecting from credentials in google_sheet for " + input.accountName + " " + e);
             });
         } finally {
-            await database.close();
+            try {
+                await database.close();
+            } catch (e) {
+                logger.errorLog.error("Error closing database in create.js " + e);
+            }
         }
         if (google_sheets === null) {
+            logger.errorLog.warn("Invalid credentials in google_sheet for " + input.accountName);
             return {
                 error: "Invalid credentials/AccountName"
             }
         }
+
+        INPUTS = INPUTS.slice(0, INPUTS.length - 2);
         return datafire.flow(context)
             .then(_ => google_sheets.spreadsheets.values.append({
                 spreadsheetId: input.spreadsheetId,
@@ -72,4 +81,4 @@ module.exports = new datafire.Action({
     },
 });
 
-const INPUTS = module.exports.inputs;
+let INPUTS = module.exports.inputs;

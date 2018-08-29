@@ -2,6 +2,7 @@
 let datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
+let logger = require('./winston');
 let google_gmail;
 
 module.exports = new datafire.Action({
@@ -20,7 +21,8 @@ module.exports = new datafire.Action({
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
-            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'gmail' AND AccountName= ?", input.accountName).then(result => {
+            logger.accessLog.info("Getting credentials in gmail for " + input.accountName);
+            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'gmail' AND Active = 1 AND AccountName= ?", input.accountName).then(result => {
                 result = result[0];
                 google_gmail = null;
                 google_gmail = require('@datafire/google_gmail').create({
@@ -30,18 +32,23 @@ module.exports = new datafire.Action({
                     client_secret: result.ClientSecret,
                 });
             }).catch(e => {
-                console.log("Error selecting from credentials for gmail, Msg: " + e);
+                logger.errorLog.error("Error selecting from credentials in gmail for " + input.accountName + " " + e);
             });
         } finally {
-            await database.close();
+            try {
+                await database.close();
+            } catch (e) {
+                logger.errorLog.error("Error closing database in gmail " + e);
+            }
         }
 
         if (google_gmail === null) {
+            logger.errorLog.warn("Invalid credentials in gmail for " + input.accountName);
             return {
                 error: "Invalid credentials/AccountName"
             }
         }
-        console.log('in gmail');
+        logger.accessLog.verbose("Syncing gmail for " + input.accountName);
         //returns message ids
         const listMessagesResponse = await google_gmail.users.messages.list({
             userId: "me",
@@ -70,6 +77,7 @@ module.exports = new datafire.Action({
         try {
             return await Promise.all([messageMapping, userProfile]);
         } catch (e) {
+            logger.errorLog.error("Error in gmail " + e);
             return e;
         }
     },

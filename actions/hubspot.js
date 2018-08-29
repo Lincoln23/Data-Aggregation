@@ -2,6 +2,7 @@ const Hubspot = require('hubspot');
 const datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
+let logger = require('./winston');
 let hubspot;
 
 module.exports = new datafire.Action({
@@ -15,18 +16,26 @@ module.exports = new datafire.Action({
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
-            await database.query("SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND AccountName = ?", input.accountName).then(result => {
+            logger.accessLog.info("Getting credentials in hubspot for " + input.accountName);
+            await database.query("SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
                 hubspot = null;
                 hubspot = new Hubspot({accessToken: result.AccessToken});
             }).catch(e => {
-                console.log("Error selecting from credentials for hubspot, Msg: " + e);
+                logger.errorLog.error("Error selecting from credentials in hubspot for " + input.accountName + " " + e);
             });
         } finally {
-            await database.close();
+            try {
+                await database.close();
+            } catch (e) {
+                logger.errorLog.error("Error closing database in hubspot " + e);
+            }
         }
-        if (hubspot === null) return {error: "Invalid credentials/AccountName"};
-        console.log("in hubspot");
+        if (hubspot === null) {
+            logger.errorLog.warn("Invalid credentials for " + input.accountName);
+            return {error: "Invalid credentials/AccountName"};
+        }
+        logger.accessLog.verbose("Syncing hubspot for " + input.accountName);
 
         let companyOptions = {
             limit: 250,
@@ -36,7 +45,7 @@ module.exports = new datafire.Action({
         await hubspot.companies.get(companyOptions).then(results => {
             res.push(results);
         }).catch(err => {
-            console.log(err);
+            logger.errorLog.error("Error getting companies in hubspot " + err);
             res.push(err);
         });
         let contactOptions = {
@@ -46,6 +55,7 @@ module.exports = new datafire.Action({
             .then(results => {
                 res.push(results);
             }).catch(err => {
+                logger.errorLog.error("Error getting contacts in hubspot " + err);
                 console.error(err)
             });
         return res;

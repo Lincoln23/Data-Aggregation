@@ -4,6 +4,7 @@ const setup = require('./setup.js');
 let fs = require('fs');
 let config = require('./config.json');
 let refresh = require('./refreshToken');
+let logger = require('./winston');
 let salesforce;
 
 // about expiry https://salesforce.stackexchange.com/questions/73512/oauth-access-token-expiration
@@ -21,7 +22,8 @@ module.exports = new datafire.Action({
         config.database = await setup.getSchema("abc");
         let databaseCred = new setup.database(config);
         try {
-            await databaseCred.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret,AccountName FROM AccessKeys WHERE  IntegrationName = 'salesforce' and AccountName = ?", input.accountName).then(result => {
+            logger.accessLog.info("Getting Credentials in    Salesforce for " + input.accountName);
+            await databaseCred.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret,AccountName FROM AccessKeys WHERE  IntegrationName = 'salesforce' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
                 salesforce = null;
                 refreshToken = result.RefreshToken;
@@ -35,13 +37,20 @@ module.exports = new datafire.Action({
                     client_secret: clientSecret,
                 });
             }).catch(e => {
-                console.log("Error selecting from credentials for salesforce, Msg: " + e);
+                logger.errorLog.error("Error selecting from credentials in salesforce for " + input.accountName + " " + e);
             });
         } finally {
-            databaseCred.close();
+            try {
+                await databaseCred.close();
+            } catch (e) {
+                logger.errorLog.error("1. Error closing database in salesforce " + e);
+            }
         }
-        if (salesforce == null) return {error: "Invalid credentials/accountName"};
-        console.log('in salesforce');
+        if (salesforce == null) {
+            logger.errorLog.warn("Invalid credentials for " + input.accountName);
+            return {error: "Invalid credentials/accountName"};
+        }
+        logger.accessLog.info("Syncing SalesForce for " + input.accountName);
         let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format
         let newDataContact = 0; // set to true only if there is new data and it will update the last synced time
         let newDataOpportunity = 0; // set to true only if there is new data and it will update the last synced time
@@ -51,29 +60,30 @@ module.exports = new datafire.Action({
         try {
             if (!fs.existsSync('./SalesForce.txt')) {
                 fs.writeFile("SalesForce.txt", "SalesForce Synced for the first time", function (err) {
-                    if (err) console.log(err);
-                    console.log("Saleforce file was saved!");
+                    if (err) logger.errorLog.error("Failed creating file " + err);
+                    logger.accessLog.info("Salesforce file was created and saved");
                 });
                 opportunitySyncTime = contactsSyncTime = "1970-01-15T00:00:00.000Z";
                 let sqlSyncContact = 'INSERT INTO SyncTime (Name, Time) VALUES (?,?)';
                 let syncContactValues = ["SalesForceContact", contactsSyncTime];
                 database.query(sqlSyncContact, syncContactValues).then(() => {
-                }).catch((err) => {
-                    console.log("Error inserting to SyncTime for SalesForceContact, Message: " + err);
+                }).catch((e) => {
+                    logger.errorLog.error("Error inserting to SyncTime for SalesForceContact " + e);
                 });
 
                 let sqlSyncOpportunity = 'INSERT INTO SyncTime (Name, Time) VALUES (?,?)';
                 let opportunityValues = ["SalesForceOpportunity", opportunitySyncTime];
                 database.query(sqlSyncOpportunity, opportunityValues).then(() => {
-                }).catch((err) => {
-                    console.log("Error inserting to SyncTime for SalesForceOpportunity, Message: " + err);
+                }).catch((e) => {
+                    logger.errorLog.error("Error inserting to SyncTime for SalesForceOpportunity " + e);
+
                 });
             }
 
             //----------------------------------------Query for Contacts -------------------------------------------//
             await database.query('SELECT TIME AS Current FROM SyncTime WHERE NAME = "SalesForceContact"').then(result => {
                 contactsSyncTime = result[0].Current;
-                console.log("Sync Time for contactsSyncTime:" + contactsSyncTime);
+                logger.accessLog.verbose("Sync Time for contactsSyncTime: " + contactsSyncTime);
                 return contactsSyncTime;
             }).then(async time => {
                 try {
@@ -99,37 +109,36 @@ module.exports = new datafire.Action({
                     }
                     let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS SalesForceContact(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, ContactId varchar(1024), Name varchar(1024),Email varchar(1024), Phone varchar(1024), AccountName varchar(1024), AccountID varchar(1024), Alias varchar(1024))";
                     database.query(createTableIfNotExist).create(err => {
-                        console.log("Error creating table SalesForceContact Msg: " + err);
+                        logger.errorLog.error("Error creating table SalesForceContact Msg: " + err);
                     }).then(() => {
                         let sqlContact = 'INSERT INTO SalesForceContact (ContactId, Name, Email, Phone,AccountName, AccountID,Alias) VALUES (?,?,?,?,?,?,?)';
                         let contactValues = [element.Id, element.Name, element.Email, element.Phone, element.Account.Name, element.Account.Id, element.Owner.Alias];
                         database.query(sqlContact, contactValues).catch(e => {
-                            console.log("Error in inserting into SalesForceContact, Message: " + e);
+                            logger.errorLog.error("Error inserting to SyncTime for SalesForceContact " + e);
                         });
                     })
- 
+
                 });
             }).then(async () => {
                 if (newDataContact) { //only update time if there is new data
-                    console.log("There is new Data for Contacts");
                     let sqlContact = 'Update SyncTime Set Time = ? WHERE Name = "SalesForceContact" ';
                     await database.query(sqlContact, currentTime).catch(e => {
-                        console.log("Error updating SyncTime for SalesForceContact, Message: " + e);
+                        logger.errorLog.error("Error updating SyncTime for SalesForceContact " + e);
                     });
                 }
             }).catch(async err => {
                 let regex = new RegExp('code 401');
                 if (err.toString().match(regex)) {
-                    console.log("Credentials error");
+                    logger.errorLog.info("Credentials for salesforce expired.. refreshing");
                     refresh.refreshKeys(accountName, clientId, clientSecret, refreshToken, "salesforce");
                 }
-                console.log("Error caught in final catch block for Contacts, Message: " + err);
+                logger.errorLog.error("Error caught in final catch block for Contacts in salesforce " + err);
             });
 
             //----------------------------------------Query for Opportunities -------------------------------------------//
             await database.query('SELECT TIME AS Current FROM SyncTime WHERE NAME = "SalesForceOpportunity" ').then(result => {
                 opportunitySyncTime = result[0].Current;
-                console.log("Sync Time for opportunitySyncTime:" + opportunitySyncTime);
+                logger.accessLog.verbose("Sync Time for opportunitySyncTime: " + opportunitySyncTime);
                 return opportunitySyncTime;
             }).then(async (time) => {
                 try {
@@ -150,31 +159,34 @@ module.exports = new datafire.Action({
                         }
                     }
                     let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS SalesForceOpportunity(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, OpportunityId varchar(255), Name varchar(1024), AccountName varchar(255), AccountID varchar(255), Amount float, CloseDate varchar(255), CreatedDate varchar(255), StageName varchar(255), ExpectedRevenue varchar(255))";
-                    database.query(createTableIfNotExist).catch(err => {
-                        console.log("Error creating table SalesForceOpportunity Msg: " + err);
+                    database.query(createTableIfNotExist).catch(e => {
+                        logger.errorLog.error("Error creating table SalesForceOpportunity Msg: " + e);
                     }).then(() => {
                         let sqlOpportunity = 'INSERT INTO SalesForceOpportunity (OpportunityId, Name, AccountName, AccountID,Amount, CreatedDate,CloseDate,StageName,ExpectedRevenue) VALUES (?,?,?,?,?,?,?,?,?)';
                         let opportunityValues = [value.Id, value.Name, value.Account.Name, value.AccountId, value.Amount, value.CreatedDate, value.CloseDate, value.StageName, value.ExpectedRevenue];
                         database.query(sqlOpportunity, opportunityValues).catch(e => {
-                            console.log("Error in inserting into SalesForceOpportunity, Message: " + e);
+                            logger.errorLog.error("Error in inserting into SalesForceOpportunity, Msg: " + e);
                         });
                     })
-   
+
                 });
             }).then(async () => {
                 if (newDataOpportunity) { //only update time if there is new data
-                    console.log("There is new Data for Opportunity");
                     let sqlOpportunity = 'Update SyncTime Set Time = ? WHERE Name = "SalesForceOpportunity" ';
                     await database.query(sqlOpportunity, currentTime).catch(e => {
-                        console.log("Error updating SyncTime for SalesForceOpportunity, Message: " + e);
+                        logger.errorLog.error("Error updating SyncTime for SalesForceOpportunity, Msg: " + e);
                     });
                 }
             }).catch(e => {
-                console.log("Error caught in final catch block for Opportunity, Message: " + e);
+                logger.errorLog.error("Error caught in final catch block for Opportunity, Msg: " + e);
             });
             return "SalesForce.js is running";
         } finally {
-            database.close();
+            try {
+                await database.close();
+            } catch (e) {
+                logger.errorLog.error("2. Error closing database in salesforce " + e);
+            }
         }
     },
 });

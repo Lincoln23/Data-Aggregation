@@ -1,9 +1,6 @@
 const mysql = require('mysql');
 const axios = require('axios');
-let datafire = require('datafire');
-let project = datafire.Project.fromDirectory(__dirname);
-project.startTasks();
-project.serve({port: 3000});
+let logger = require('./winston');
 exports = module.exports;
 
 exports.database = class Database {
@@ -41,7 +38,7 @@ exports.getSchema = async (paramter) => {
         .then(response => {
             result = response.data.database;
         }).catch(error => {
-            console.log(error);
+            logger.errorLog.error("Error getting schema in setup " + error);
         });
     return result;
 };
