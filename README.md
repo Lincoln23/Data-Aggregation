@@ -13,8 +13,6 @@ Built using:
   - Oauth redirect URL is on hosted on port **3333**
   - Run `npm install` and `npm install -g datafire`
   - Start server by ` datafire serve --tasks true ` or by `datafire serve --port {port number}`
-  - Can also be started from `startup.js` using `Node startup.js` in the root directory 
-  - Follow this [guide][pm2] to setup the service with pm2
  
  
 ## **Authorization**
@@ -81,6 +79,42 @@ const connection = mysql.createConnection({
   - You will need to update the SQL insert queries for your own database
     - My database is setup as:
 ![alt text](https://raw.githubusercontent.com/Lincoln23/Data-Integration/master/DataIntegration.png)
+
+## Enable/Disable Integration
+Able to disable/enable integrations
+**Get** request to:
+  ```sh                       
+    http://localhost:3000/activate?type={type}&accountName=${name}&apikey={boolean}
+```
+
+  - `Parameters`
+    - `Type`: Required, 3 options:
+        -  `view`, view which accounts/integrations are active
+        -  `on`, turn on an integration (requires accountName parameter)
+        - `off` turn of an integration (requires accountName parameter)
+    - `accountName`: Required for `type`: `on` or `off`
+        -  The account you want to enable or disable the integraiton for
+    - `apikey`: default is false
+            - **Set this to `true` if your integration uses an API key instead of an OAuth Token**
+            - if parameter is not included the default value is `false`
+            
+**Example to view all integrations that uses OAuth tokens**:
+  ```sh                       
+    http://localhost:3000/activate?type=view
+```   
+**Example to view all integrations that uses API keys**:
+  ```sh                       
+    http://localhost:3000/activate?type=view&apikey=true
+```   
+**Example enabling an integration that uses API key**:
+  ```sh                       
+    http://localhost:3000/activate?type=on&accountName=${accountName}&apikey=true
+```   
+**Example disabling an integration using OAuth tokens**:
+  ```sh                       
+    http://localhost:3000/activate?type=off&accountName=${accountName}
+```   
+    
 
 ## Integrations
 ## Google Sheets
@@ -403,7 +437,12 @@ Returns all contacts and companies
 http://localhost:3000/hubspot?accountName=hubspot1
 ```
 
-
+## Logging
+**Logs are saved in the `./Logs/access.logs` and `./Logs/error.logs`
+  - `access.log` logs everything non critical
+  - `errors.log` logs all warning and errors
+[Logging is done with winston.js][winston]
+to edit formatting go to `actions/winston`
 
 ## Result
   - Response is in **JSON** 
@@ -421,5 +460,5 @@ http://localhost:3000/hubspot?accountName=hubspot1
 [hubspot]:<https://developers.hubspot.com/> 
 [calendarID]:<https://docs.simplecalendar.io/find-google-calendar-id/>
 [quickbooksID]:<https://community.intuit.com/articles/1517319-how-do-i-find-my-company-id>
-[pm2]:<https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04>
+[winston]:<https://github.com/winstonjs/winston>
   
