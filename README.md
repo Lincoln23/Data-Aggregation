@@ -82,6 +82,7 @@ const connection = mysql.createConnection({
 
 ## Enable/Disable Integration
 Able to disable/enable integrations
+
 **Get** request to:
   ```sh                       
     http://localhost:3000/activate?type={type}&accountName=${name}&apikey={boolean}
@@ -438,10 +439,12 @@ http://localhost:3000/hubspot?accountName=hubspot1
 ```
 
 ## Logging
-**Logs are saved in the `./Logs/access.logs` and `./Logs/error.logs`
+**Logs are saved in the `./Logs/access.logs` and `./Logs/error.logs`**
   - `access.log` logs everything non critical
   - `errors.log` logs all warning and errors
+  
 [Logging is done with winston.js][winston]
+
 to edit formatting go to `actions/winston`
 
 ## Result
