@@ -7,7 +7,7 @@ let logPath = __dirname;
 let options = {
     errorLogs: {
         level: 'info',
-        filename: path.join(logPath, 'errors.log'),
+        filename: path.join(logPath, '..', 'Logs/errors.log'),
         handleExceptions: true,
         json: true,
         maxsize: 5242880, // 5MB
@@ -16,7 +16,7 @@ let options = {
     },
     accessLogs: {
         level: 'silly',
-        filename: path.join(logPath, 'access.log'),
+        filename: path.join(logPath, '..', 'Logs/access.log'),
         handleExceptions: true,
         json: true,
         maxsize: 5242880, // 5MB
