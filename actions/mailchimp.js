@@ -3,7 +3,7 @@ let datafire = require('datafire');
 const setup = require('./setup');
 let config = require('./config.json');
 let logger = require('./winston');
-let mailchimp;
+
 
 // dc : "the extension at the end of the api key"
 let insert = (createTable, query, values, database) => {
@@ -28,13 +28,13 @@ module.exports = new datafire.Action({
         default: "mailchimp1"
     }],
     handler: async (input, context) => {
+        let mailchimp = null;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in mailchimp for " + input.accountName);
             await database.query("SELECT api_key FROM ApiKeys WHERE IntegrationName = 'mailchimp' AND Active = 1 AND AccountName = ? ", input.accountName).then(result => {
                 result = result[0];
-                mailchimp = null;
                 mailchimp = require('@datafire/mailchimp').create({
                     apiKey: result.api_key,
                 });
@@ -49,10 +49,8 @@ module.exports = new datafire.Action({
             }
         }
         if (mailchimp == null) {
-            logger.errorLog.warn("Invalid credentials for " + input.accountName);
-            return {
-                error: "Invalid credentials/accountName"
-            };
+            logger.errorLog.warn("Integration disabled or invalid accountName in mailchimp for " + input.accountName);
+            return {error: "Invalid AccountName or integration disabled"};
         }
         logger.accessLog.verbose("Syncing mailchimp for " + input.accountName);
         let result = [];

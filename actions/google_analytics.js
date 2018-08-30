@@ -3,7 +3,7 @@ let datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
 let logger = require('./winston');
-let google_analytics;
+
 
 module.exports = new datafire.Action({
     inputs: [{
@@ -12,13 +12,13 @@ module.exports = new datafire.Action({
         default: "analytics1"
     }],
     handler: async (input, context) => {
+        let google_analytics = null;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in google_analytics for " + input.accountName);
             await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_analytics' AND Active = 1 AND AccountName= ?", input.accountName).then(result => {
                 result = result[0];
-                google_analytics = null;
                 google_analytics = require('@datafire/google_analytics').create({
                     access_token: result.AccessToken,
                     refresh_token: result.RefreshToken,
@@ -37,10 +37,8 @@ module.exports = new datafire.Action({
         }
 
         if (google_analytics === null) {
-            logger.errorLog.warn("Invalid credentials in google_analytics for " + input.accountName);
-            return {
-                error: "Invalid credentials/AccountName"
-            }
+            logger.errorLog.warn("Integration disabled or invalid accountName in google_analytics for " + input.accountName);
+            return {error: "Invalid AccountName or integration disabled"};
         }
         logger.accessLog.verbose("Syncing google_analytics for " + input.accountName);
         const getData = new Promise((resolve, reject) => {

@@ -73,7 +73,7 @@ let getOAuthURL = (clientId, redirect, integration) => {
 
 let access = (code, id, secret, redirect_url, state2, integration, accountName) => {
     let tokenUrl = webUrl[integration].token;
-    if (state == state2) {
+    if (state === state2) {
         let options = {
             method: 'POST',
             url: tokenUrl,

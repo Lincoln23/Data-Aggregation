@@ -3,7 +3,7 @@ const datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
 let logger = require('./winston');
-let hubspot;
+
 
 module.exports = new datafire.Action({
     inputs: [{
@@ -12,6 +12,7 @@ module.exports = new datafire.Action({
         default: "hubspot1"
     }],
     handler: async (input, context) => {
+        let hubspot = null;
         let res = [];
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
@@ -19,7 +20,6 @@ module.exports = new datafire.Action({
             logger.accessLog.info("Getting credentials in hubspot for " + input.accountName);
             await database.query("SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
-                hubspot = null;
                 hubspot = new Hubspot({accessToken: result.AccessToken});
             }).catch(e => {
                 logger.errorLog.error("Error selecting from credentials in hubspot for " + input.accountName + " " + e);
@@ -32,8 +32,8 @@ module.exports = new datafire.Action({
             }
         }
         if (hubspot === null) {
-            logger.errorLog.warn("Invalid credentials for " + input.accountName);
-            return {error: "Invalid credentials/AccountName"};
+            logger.errorLog.warn("Integration disabled or invalid accountName in hubspot for " + input.accountName);
+            return {error: "Invalid AccountName or integration disabled"};
         }
         logger.accessLog.verbose("Syncing hubspot for " + input.accountName);
 

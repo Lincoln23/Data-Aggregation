@@ -3,7 +3,7 @@ let datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
 let logger = require('./winston');
-let google_gmail;
+
 
 module.exports = new datafire.Action({
     inputs: [{
@@ -17,6 +17,7 @@ module.exports = new datafire.Action({
         default: "fastapp"
     }],
     handler: async (input, context) => {
+        let google_gmail = null;
         // let contextHost = context.request.headers.host;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
@@ -24,7 +25,6 @@ module.exports = new datafire.Action({
             logger.accessLog.info("Getting credentials in gmail for " + input.accountName);
             await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'gmail' AND Active = 1 AND AccountName= ?", input.accountName).then(result => {
                 result = result[0];
-                google_gmail = null;
                 google_gmail = require('@datafire/google_gmail').create({
                     access_token: result.AccessToken,
                     refresh_token: result.RefreshToken,
@@ -43,10 +43,8 @@ module.exports = new datafire.Action({
         }
 
         if (google_gmail === null) {
-            logger.errorLog.warn("Invalid credentials in gmail for " + input.accountName);
-            return {
-                error: "Invalid credentials/AccountName"
-            }
+            logger.errorLog.warn("Integration disabled or invalid accountName in google_gmail for " + input.accountName);
+            return {error: "Invalid AccountName or integration disabled"};
         }
         logger.accessLog.verbose("Syncing gmail for " + input.accountName);
         //returns message ids

@@ -3,7 +3,6 @@ let datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
 let logger = require('./winston');
-let google_sheets;
 
 module.exports = new datafire.Action({
     description: "Creates a new item in the spreadsheet",
@@ -34,14 +33,13 @@ module.exports = new datafire.Action({
             default: "sheets1"
         }],
     handler: async (input, context) => {
-        console.log(input);
+        let google_sheets = null;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting Credentials in google_Sheets for " + input.accountName);
             await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
-                google_sheets = null;
                 google_sheets = require('@datafire/google_sheets').create({
                     access_token: result.AccessToken,
                     refresh_token: result.RefreshToken,
@@ -59,10 +57,8 @@ module.exports = new datafire.Action({
             }
         }
         if (google_sheets === null) {
-            logger.errorLog.warn("Invalid credentials in google_sheet for " + input.accountName);
-            return {
-                error: "Invalid credentials/AccountName"
-            }
+            logger.errorLog.warn("Integration disabled or invalid accountName in google_sheets for " + input.accountName);
+            return {error: "Invalid AccountName or integration disabled"};
         }
 
         INPUTS = INPUTS.slice(0, INPUTS.length - 2);

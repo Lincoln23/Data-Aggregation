@@ -4,7 +4,7 @@ let inputs = require('./create').inputs;
 const setup = require('./setup.js');
 let config = require('./config.json');
 let logger = require('./winston');
-let google_sheets;
+
 
 function getColumnLetter(idx) {
     return String.fromCharCode(idx + 64);
@@ -22,13 +22,13 @@ module.exports = new datafire.Action({
         default: "sheets1"
     }],
     handler: async (input, context) => {
+        let google_sheets = null;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in google_sheets for " + input.accountName);
             await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
-                google_sheets = null;
                 google_sheets = require('@datafire/google_sheets').create({
                     access_token: result.AccessToken,
                     refresh_token: result.RefreshToken,
@@ -39,8 +39,8 @@ module.exports = new datafire.Action({
                 logger.errorLog.error("Error selecting from credentials in google_sheets for " + input.accountName + " " + e);
             });
             if (google_sheets == null) {
-                logger.errorLog.warn("Invalid credentials for " + input.accountName);
-                return {error: "Invalid credentials/accountName"};
+                logger.errorLog.warn("Integration disabled or invalid accountName in google_sheets for " + input.accountName);
+                return {error: "Invalid AccountName or integration disabled"};
             }
             logger.accessLog.verbose("Syncing google_sheets for " + input.accountName);
             let startRow = 1;

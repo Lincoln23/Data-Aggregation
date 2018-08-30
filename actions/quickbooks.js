@@ -3,7 +3,7 @@ const datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
 let logger = require('./winston');
-let qbo;
+
 
 module.exports = new datafire.Action({
     inputs: [{
@@ -17,13 +17,13 @@ module.exports = new datafire.Action({
         default: "quickbooks1"
     }],
     handler: async (input, context) => {
+        let qbo = null;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in quickbooks for " + input.accountName);
             await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'quickbooks' AND Active = 1 AND AccountName = ? ", input.accountName).then(result => {
                 result = result[0];
-                qbo = null;
                 qbo = new QuickBooks(result.ClientId, //client id
                     result.ClientSecret, //client secret
                     result.AccessToken, //OAuth Token
@@ -46,8 +46,8 @@ module.exports = new datafire.Action({
             }
         }
         if (qbo == null) {
-            logger.errorLog.warn("Invalid credentials for" + input.accountName);
-            return {error: "Invalid credentials/accountName"};
+            logger.errorLog.warn("Integration disabled or invalid accountName in quickbooks for " + input.accountName);
+            return {error: "Invalid AccountName or integration disabled"};
         }
         logger.accessLog.verbose("Syncing quickbooks for" + input.accountName);
         const accounts = new Promise((resolve, reject) => {

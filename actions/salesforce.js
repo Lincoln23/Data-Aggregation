@@ -5,7 +5,7 @@ let fs = require('fs');
 let config = require('./config.json');
 let refresh = require('./refreshToken');
 let logger = require('./winston');
-let salesforce;
+
 
 // about expiry https://salesforce.stackexchange.com/questions/73512/oauth-access-token-expiration
 module.exports = new datafire.Action({
@@ -15,6 +15,7 @@ module.exports = new datafire.Action({
         default: "salesforce1"
     }],
     handler: async (input, context) => {
+        let salesforce = null;
         let refreshToken;
         let clientId;
         let clientSecret;
@@ -25,7 +26,6 @@ module.exports = new datafire.Action({
             logger.accessLog.info("Getting Credentials in    Salesforce for " + input.accountName);
             await databaseCred.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret,AccountName FROM AccessKeys WHERE  IntegrationName = 'salesforce' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
-                salesforce = null;
                 refreshToken = result.RefreshToken;
                 clientId = result.ClientId;
                 clientSecret = result.ClientSecret;
@@ -47,8 +47,8 @@ module.exports = new datafire.Action({
             }
         }
         if (salesforce == null) {
-            logger.errorLog.warn("Invalid credentials for " + input.accountName);
-            return {error: "Invalid credentials/accountName"};
+            logger.errorLog.warn("Integration disabled or invalid accountName in salesforce for " + input.accountName);
+            return {error: "Invalid AccountName or integration disabled"};
         }
         logger.accessLog.info("Syncing SalesForce for " + input.accountName);
         let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format

@@ -3,7 +3,7 @@ const datafire = require('datafire');
 const setup = require('./setup.js');
 let config = require('./config.json');
 let logger = require('./winston');
-let trello;
+
 
 //BUG: Database will close before it is finished inserting
 module.exports = new datafire.Action({
@@ -17,13 +17,13 @@ module.exports = new datafire.Action({
         default: "lincoln346"
     }],
     handler: async (input, context) => {
+        let trello = null;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in trello for " + input.accountName);
             await database.query("SELECT api_key, api_token FROM ApiKeys WHERE IntegrationName = 'trello' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
-                trello = null;
                 trello = require('@datafire/trello').create({
                     api_key: result.api_key,
                     api_token: result.api_token
@@ -39,8 +39,8 @@ module.exports = new datafire.Action({
             }
         }
         if (trello == null) {
-            logger.errorLog.warn("Invalid credentails for " + input.accountName);
-            return {error: "Invalid credentials/accountName"};
+            logger.errorLog.warn("Integration disabled or invalid accountName in trello for " + input.accountName);
+            return {error: "Invalid AccountName or integration disabled"};
         }
         logger.accessLog.verbose("Syncing trello for " + input.accountName);
         let result = [];
