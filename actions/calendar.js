@@ -28,7 +28,6 @@ module.exports = new datafire.Action({
     }],
     handler: async (input, context) => {
         let google_calendar = null;
-        console.log(input.accountName);
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
@@ -52,7 +51,6 @@ module.exports = new datafire.Action({
                 logger.errorLog.error("Error closing database in calendar.js " + e);
             }
         }
-        console.log(google_calendar);
         if (google_calendar === null) {
             logger.errorLog.warn("Integration disabled or invalid accountName in google_calendar for " + input.accountName);
             return {error: "Invalid AccountName or integration disabled"};
