@@ -59,7 +59,6 @@ module.exports = new datafire.Action({
             logger.accessLog.info("Enabling integration for " + input.accountName);
             let sql = "UPDATE AccessKeys SET Active = 0 WHERE AccountName = ?";
             if (input.apikey === true) {
-                console.log("In keys");
                 sql = "UPDATE ApiKeys SET Active = 0 WHERE AccountName = ?";
             }
             await database.query(sql, input.accountName).catch(err => {
