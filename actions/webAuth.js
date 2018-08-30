@@ -4,9 +4,10 @@ const request = require('request');
 let express = require('express');
 const setup = require('./setup');
 let config = require('./config.json');
-let app = express();
 let webUrl = require('../auth');
 let logger = require('./winston');
+let shopifyAPI = require('shopify-node-api');
+let app = express();
 app.listen(3333, () => logger.accessLog.info('Listening for redirect URL on port: 3333'));
 
 //WARN need to have integration,clientId ... variables here or else they won't update in the app.get method;
@@ -15,6 +16,29 @@ let integration;
 let accountName;
 let clientId;
 let clientSecret;
+let myshop;
+
+let getShopifyURL = (shop, apikey, secret) => {
+    let shopify = new shopifyAPI({
+        shop: shop,
+        shopify_api_key: apikey,
+        shopify_shared_secret: secret,
+        shopify_scope: 'read_content,read_customers,read_orders',
+        redirect_uri: 'http://localhost:3333',
+        nonce: '123',
+        verbose: false,
+    });
+    return {
+        url: shopify.buildAuthURL(),
+        shopify: shopify
+    }
+
+};
+
+
+
+
+
 
 
 let getOAuthURL = (clientId, redirect, integration) => {
@@ -69,37 +93,40 @@ let access = (code, id, secret, redirect_url, state2, integration, accountName) 
         };
         request(options, async (error, response, body) => {
             if (error) throw new Error(error);
-            let jsonBody = JSON.parse(body);
-            if (jsonBody.error) {
-                logger.errorLog.error("Error in post request in webAuth " + jsonBody.error);
-                return jsonBody.error;
+            let data = JSON.parse(body);
+            if (data.error) {
+                logger.errorLog.error("Error in post request in webAuth " + data.error);
+                return data.error;
             } else {
-                let date = null;
-                if (jsonBody.expires_in != undefined) {
-                    date = expiryDate(jsonBody.expires_in);
-                }
-                let database = new setup.database(config);
-                try {
-                    let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS AccessKeys(AccountName varchar(150) NOT NULL PRIMARY KEY, IntegrationName varchar(255), AccessToken varchar(1024), RefreshToken varchar(1024), ClientId varchar(1024), ClientSecret varchar(1024), Expiry int(11), ExpiryDate datetime, Active tinyint(1))";
-                    await database.query(createTableIfNotExist).catch(err => {
-                        logger.errorLog.error("Error creating table AccessKey " + err);
-                    }).then(() => {
-                        let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
-                        let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
-                        database.query(sql, values).catch(err => {
-                            logger.errorLog.error("Error inserting into AccessKeys for " + accountName + " " + err);
-                        });
-                    });
-                } finally {
-                    try {
-                        await database.close();
-                    } catch (e) {
-                        logger.errorLog.error("Error closing database in access() in webAuth.js " + e);
-                    }
-                }
-
+                await insertIntoDB(data, accountName, integration, secret);
             }
         });
+    }
+};
+
+let insertIntoDB = async (data, accountName, integration, client_id, client_secret) => {
+    let date = null;
+    if (data.expires_in != undefined) {
+        date = expiryDate(data.expires_in);
+    }
+    let database = new setup.database(config);
+    try {
+        let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS AccessKeys(AccountName varchar(150) NOT NULL PRIMARY KEY, IntegrationName varchar(255), AccessToken varchar(1024), RefreshToken varchar(1024), ClientId varchar(1024), ClientSecret varchar(1024), Expiry int(11), ExpiryDate datetime, Active tinyint(1))";
+        await database.query(createTableIfNotExist).catch(err => {
+            logger.errorLog.error("Error creating table AccessKey " + err);
+        }).then(() => {
+            let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+            let values = [accountName, integration, data.access_token, data.refresh_token, data.expires_in, date, client_id, client_secret];
+            database.query(sql, values).catch(err => {
+                logger.errorLog.error("Error inserting into AccessKeys for " + accountName + " " + err);
+            });
+        });
+    } finally {
+        try {
+            await database.close();
+        } catch (e) {
+            logger.errorLog.error("Error closing database in access() in webAuth.js " + e);
+        }
     }
 };
 
@@ -135,24 +162,44 @@ module.exports = new datafire.Action({
     }, {
         type: "string",
         title: "accountName"
+    }, {
+        type: "string",
+        title: "myshop",
+        default: "",
     }],
 
     handler: async (input, context) => {
         const redirect_url = 'http://localhost:3333'; // use context obj to get url path to replace localhost
+        myshop = input.myshop;
         integration = input.integration;
         clientId = input.client_id;
         clientSecret = input.client_secret;
         accountName = input.accountName;
-        logger.accessLog.verbose("Web Oauth integration for: " + integration + " for " + input.accountName);
+        logger.accessLog.verbose("Web Oauth integration for: " + integration + " for " + accountName);
         let code = null;
         let state2 = null;
+        let url = null;
         config.database = await setup.getSchema("abc"); // use context to get url here
-        let url = getOAuthURL(input.client_id, redirect_url, input.integration);
+        let shopifyObj = null;
+        if (input.integration === "shopify") {
+            let tempObj = getShopifyURL(myshop, clientId, clientSecret);
+            shopifyObj = tempObj.shopify;
+            url = tempObj.url;
+        } else {
+            url = getOAuthURL(clientId, redirect_url, integration);
+        }
         app.get('/', (req, res) => {
-            code = decodeURIComponent(req.query.code);
-            state2 = decodeURIComponent(req.query.state);
-            access(code, clientId, clientSecret, redirect_url, state2, integration, accountName);
-            res.send("Done!"); // equivalent to res.write + res.end
+            if (input.integration === "shopify") {
+                shopifyObj.exchange_temporary_token(req.query, async function (err, data) {
+                    await insertIntoDB(data, accountName, integration, clientId, clientSecret);
+                });
+                res.send("Done!"); // equivalent to res.write + res.end
+            } else {
+                code = decodeURIComponent(req.query.code);
+                state2 = decodeURIComponent(req.query.state);
+                access(code, clientId, clientSecret, redirect_url, state2, integration, accountName);
+                res.send("Done!"); // equivalent to res.write + res.end
+            }
         });
         return {
             "authUrl": url,
