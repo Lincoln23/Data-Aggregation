@@ -9,8 +9,26 @@ module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "accountName",
+    }, {
+        type: "string",
+        title: "ids"
+    }, {
+        type: "string",
+        title: "start",
+        default: "7daysAgo",
+    }, {
+        type: "string",
+        title: "end",
+        default: "today",
+    }, {
+        type: "string",
+        title: "accountId"
+    }, {
+        type: "string",
+        title: "webPropertyId"
     }],
     handler: async (input, context) => {
+        console.log(context);
         let google_analytics = null;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
@@ -42,15 +60,15 @@ module.exports = new datafire.Action({
         logger.accessLog.verbose("Syncing google_analytics for " + input.accountName);
         const getData = new Promise((resolve, reject) => {
             resolve(google_analytics.data.ga.get({
-                'ids': "ga:178384360",
-                'start-date': '2017-01-10',
-                'end-date': '2017-07-10',
+                'ids': input.ids,
+                'start-date': input.start,
+                'end-date': input.end,
                 'metrics': 'ga:sessions,ga:pageviews',
             }, context));
         });
         const getRealTimeData = new Promise((resolve, reject) => {
             resolve(google_analytics.data.realtime.get({
-                'ids': "ga:178384360",
+                'ids': input.ids,
                 'metrics': "rt:activeUsers",
             }, context));
         });
@@ -60,8 +78,8 @@ module.exports = new datafire.Action({
         });
         const getCustomDataSources = new Promise((resolve, reject) => {
             resolve(google_analytics.management.customDataSources.list({
-                accountId: "122162567",
-                webPropertyId: "UA-122162567-1",
+                accountId: input.accountId,
+                webPropertyId: input.webPropertyId,
             }, context));
         });
         try {
