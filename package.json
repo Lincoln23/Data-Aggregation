@@ -20,7 +20,9 @@
     "randomstring": "^1.1.5",
     "shopify-api-node": "^2.15.0",
     "shopify-node-api": "^1.8.0",
-    "winston": "^3.0.0"
+    "winston": "^3.0.0",
+    "request": "latest",
+    "express": "latest"
   },
   "name": "data_integration",
   "version": "1.0.0",
