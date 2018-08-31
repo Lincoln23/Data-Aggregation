@@ -4,20 +4,18 @@ const Shopify = require('shopify-api-node');
 const setup = require('./setup.js');
 let config = require('./config.json');
 let logger = require('./winston');
-let shopify = null;
+
 
 module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "shop",
-        // default: "fastapps-datafiresample.myshopify.com"
     }, {
         type: "string",
         title: "accountName",
-        default: "shopify1",
     }],
     handler: async (input, context) => {
-
+        let shopify = null;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
@@ -40,15 +38,16 @@ module.exports = new datafire.Action({
         }
 
         if (shopify == null) {
-            logger.errorLog.warn("Invalid credentials for " + input.accountName);
-            return {error: "Invalid credentials/accountName"};
+            logger.errorLog.warn("Integration disabled or invalid accountName in shopify for " + input.accountName);
+            return {error: "Invalid AccountName or integration disabled"};
         }
 
-        let res = [];
-        await shopify.order.list().then(value => {
-            console.log(value);
-            res.push(value)
+
+        let customers = shopify.customer.list();
+        let orders = shopify.order.list();
+        return await Promise.all([customers, orders]).catch(e => {
+            logger.errorLog.error("Error in shopify: " + e);
         });
-        return res;
+
     },
 });

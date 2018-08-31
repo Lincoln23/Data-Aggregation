@@ -9,7 +9,6 @@ module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "accountName",
-        default: "hubspot1"
     }],
     handler: async (input, context) => {
         let hubspot = null;

@@ -37,7 +37,7 @@ let refreshKeys = async (accountName, id, secret, refreshToken, integration) => 
             if (error) throw error;
             let jsonBody = JSON.parse(body);
             if (jsonBody.error) {
-                logger.errorLog.error("Error in post request of refresh token" + jsonBody.error);
+                logger.errorLog.error("Error in post request of refresh token for " + accountName + " " + jsonBody.error);
                 return jsonBody.error;
             } else {
                 if (integration === 'gmail' || integration === 'google_sheets' || integration === 'google_calendar' || integration === 'google_analytics' || integration === "salesforce") {
@@ -67,8 +67,6 @@ let refreshKeys = async (accountName, id, secret, refreshToken, integration) => 
     } catch (e) {
         logger.errorLog.error("Error in sending POST request in refreshToken for " + accountName);
     }
-
-
 };
 
 let expiryDate = (seconds) => {

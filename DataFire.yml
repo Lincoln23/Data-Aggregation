@@ -93,54 +93,57 @@ paths:
 options:
   cors: true
 tests: {}
-## scheduling is done here
-#tasks:
-#  hubspot:
-#    schedule: cron(0 */12 * * *)
-#    action: hubspot
-#  quickbooks:
-#    schedule: cron(0 */12 * * *)
-#    action: quickbooks
-#  refreshToken:
-#    schedule: cron(0 */12 * * *)
-#    action: refreshToken
-#  googles_sheets:
-#    schedule: cron(0 */12 * * *)
-#    action: retrieve
-#    accounts: {}
-#  linkedin:
-#    schedule: cron(0 */12 * * *)
-#    action: linkedin
-#    accounts: {}
-#    input: {}
-#  gmail:
-#    schedule: cron(0 */12 * * *)
-#    action: gmail
-#    accounts: {}
-#    input: {}
-#  calendar:
-#    schedule: cron(0 */12 * * *)
-#    action: calendar
-#    accounts: {}
-#    input: {}
-#  salesforce:
-#    schedule: cron(0 */12 * * *)
-#    action: salesforce
-#    accounts: {}
+# scheduling is done here
+tasks:
+  shopify:
+    schedule: cron(0 */12 * * *)
+    action: shopify
+  hubspot:
+    schedule: cron(0 */12 * * *)
+    action: hubspot
+  quickbooks:
+    schedule: cron(0 */12 * * *)
+    action: quickbooks
+  refreshToken:
+    schedule: cron(0 */12 * * *)
+    action: refreshToken
+  googles_sheets:
+    schedule: cron(0 */12 * * *)
+    action: retrieve
+    accounts: {}
+  linkedin:
+    schedule: cron(0 */12 * * *)
+    action: linkedin
+    accounts: {}
+    input: {}
+  gmail:
+    schedule: cron(0 */12 * * *)
+    action: gmail
+    accounts: {}
+    input: {}
+  calendar:
+    schedule: cron(0 */12 * * *)
+    action: calendar
+    accounts: {}
+    input: {}
+  salesforce:
+    schedule: cron(0 */12 * * *)
+    action: salesforce
+    accounts: {}
 #  xero:
 #    schedule: cron(0 */12 * * *)
 #    action: xero
 #    accounts: {}
-#  trello:
-#    schedule: cron(0 */12 * * *)
-#    action: trello
-#    accounts: {}
-#  mailchimp:
-#    schedule: cron(0 */12 * * *)
-#    action: mailchimp
-#    accounts: {}
-#  analytics:
-#    schedule: cron(0 */12 * * *)
-#    action: google_analytics
-#    accounts: {}
+  trello:
+    schedule: cron(0 */12 * * *)
+    action: trello
+    accounts: {}
+  mailchimp:
+    schedule: cron(0 */12 * * *)
+    action: mailchimp
+    accounts: {}
+  analytics:
+    schedule: cron(0 */12 * * *)
+    action: google_analytics
+    accounts: {}
 

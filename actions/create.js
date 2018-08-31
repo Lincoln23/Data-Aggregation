@@ -26,11 +26,9 @@ module.exports = new datafire.Action({
         {
             type: "string",
             title: "spreadsheetId",
-            default: "1G_LTW3K-0ta_ZRMV0KPNSHi4-2H8dUE6TO7yTV-2Tus"
         }, {
             type: "string",
             title: "accountName",
-            default: "sheets1"
         }],
     handler: async (input, context) => {
         let google_sheets = null;

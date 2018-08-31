@@ -93,10 +93,6 @@ module.exports = new datafire.Action({
     }, {
         type: "string",
         title: "stage"
-    }, {
-        type: "string",
-        title: "frequency",
-        default: "1"
     }],
     handler: async (input, context) => {
         let res;

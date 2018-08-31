@@ -10,11 +10,9 @@ module.exports = new datafire.Action({
         // company id
         type: "string",
         title: "id",
-        default: "193514791715979"
     }, {
         type: "string",
         title: "accountName",
-        default: "quickbooks1"
     }],
     handler: async (input, context) => {
         let qbo = null;

@@ -14,12 +14,10 @@ module.exports = new datafire.Action({
     description: "gets information from google sheets",
     inputs: [{
         type: "string",
-        title: "spreadSheetId",
-        default: "1G_LTW3K-0ta_ZRMV0KPNSHi4-2H8dUE6TO7yTV-2Tus"
+        title: "id",
     }, {
         type: "string",
         title: "accountName",
-        default: "sheets1"
     }],
     handler: async (input, context) => {
         let google_sheets = null;
@@ -29,7 +27,6 @@ module.exports = new datafire.Action({
             logger.accessLog.info("Getting credentials in google_sheets for " + input.accountName);
             await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
                 result = result[0];
-                console.log(result);
                 google_sheets = require('@datafire/google_sheets').create({
                     access_token: result.AccessToken,
                     refresh_token: result.RefreshToken,
@@ -58,7 +55,7 @@ module.exports = new datafire.Action({
         let endCol = inputs.length;
         let result = await datafire.flow(context)
             .then(_ => google_sheets.spreadsheets.values.get({
-                spreadsheetId: input.spreadSheetId,
+                spreadsheetId: input.id,
                 range: getColumnLetter(startCol) + startRow + ':' + getColumnLetter(endCol) + endRow,
                 valueRenderOption: "UNFORMATTED_VALUE",
             }, context))
@@ -70,7 +67,6 @@ module.exports = new datafire.Action({
                     inputs.forEach((input, idx) => {
                         obj[input.title] = row[idx]
                     });
-                    console.log(obj);
                     return obj;
                 });
                 return rows;

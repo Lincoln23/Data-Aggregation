@@ -91,7 +91,7 @@ let access = (code, id, secret, redirect_url, state2, integration, accountName) 
                 logger.errorLog.error("Error in post request in webAuth " + data.error);
                 return data.error;
             } else {
-                await insertIntoDB(data, accountName, integration, secret);
+                await insertIntoDB(data, accountName, integration, id, secret);
             }
         });
     }

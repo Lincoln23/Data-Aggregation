@@ -8,11 +8,9 @@ module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "id",
-        default: "lincoln@sublimeapp.com"
     }, {
         type: "string",
         title: "accountName",
-        default: "calendar1"
     }, {
         type: "string",
         title: "start",

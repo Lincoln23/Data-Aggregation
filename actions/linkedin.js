@@ -5,13 +5,14 @@ let config = require('./config.json');
 let logger = require('./winston');
 
 
-
 //tokens last 60 days and does not provide refresh tokens, need to go through regular webAuth authorize again
 module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "id",
-        default: "27121438"
+    }, {
+        type: "string",
+        title: "accountName",
     }, {
         type: "string",
         title: "filter",
@@ -21,11 +22,7 @@ module.exports = new datafire.Action({
         title: "start",
         // time is in epoch ms
         default: "1516982869000"
-    }, {
-        type: "string",
-        title: "accountName",
-        default: "linkedin1"
-    }],
+    },],
     handler: async (input, context) => {
         let linkedin = null;
         config.database = await setup.getSchema("abc");

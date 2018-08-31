@@ -9,7 +9,6 @@ module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "accountName",
-        default: "analytics1"
     }],
     handler: async (input, context) => {
         let google_analytics = null;

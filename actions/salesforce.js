@@ -12,7 +12,6 @@ module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "accountName",
-        default: "salesforce1"
     }],
     handler: async (input, context) => {
         let salesforce = null;

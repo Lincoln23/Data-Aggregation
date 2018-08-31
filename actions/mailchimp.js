@@ -25,7 +25,6 @@ module.exports = new datafire.Action({
     inputs: [{
         type: "string",
         title: "accountName",
-        default: "mailchimp1"
     }],
     handler: async (input, context) => {
         let mailchimp = null;

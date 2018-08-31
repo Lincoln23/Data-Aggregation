@@ -14,7 +14,6 @@ module.exports = new datafire.Action({
     }, {
         type: "string",
         title: "accountName",
-        default: "fastapp"
     }],
     handler: async (input, context) => {
         let google_gmail = null;
