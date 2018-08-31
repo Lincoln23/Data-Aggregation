@@ -2,6 +2,28 @@
 
 An automated data integration system that authorizes the user and seamlessly updates/pulls data from 10+ services on a set schedule. Data is stored into a MySQL database
 
+### Table of Contents  
+- [Usage](#Usage)
+- [Authorization](#Authorization)
+  * [OAuth2.0](#OAuth2.0-code-grant-flow)
+  [API keys](#Api-Keys)
+- [Scheduling](#Scheduling)
+- [Database Configuration](#Database)
+- [Integrations](#Integrations)
+  * [Enable/Disable-Integration](#Enable/Disable-Integration)
+  * [Shopify](#shopify)
+  * [Google Sheets](#Google-Sheets)
+  * [Linkedin](#Linkedin)
+  * [Gmail](#Gmail)
+  * [Google-Calendar](#Google-Calendar)
+  * [Google-analytics](#Google-analytics)
+  * [][#]
+  * [][#]
+  * [][#]
+  * [][#]
+  * [][#]
+
+
 Built using:
   - [DataFire][Datafire]
   - [Node.js (version 8)][Node]
@@ -19,7 +41,7 @@ Built using:
  
 ## **Authorization**
   - Specify an `accountName` for each integration to use mutliple accounts
-  - **OAuth 2.0 code grant flow**
+#### OAuth2.0-code-grant-flow
   - **Setup**:
     - *Shopify*
         - Create a developer account [here][shopify]
@@ -72,7 +94,7 @@ http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_s
 - Credentials will be save to your MySQL database in `Accesskeys` 
  - `refreshToken.js` will check for tokens that are about to expire and refresh for new access token automatically 
  
- ## Api Keys
+ #### Api-Keys
   - **Setup**:
     -  *Trello*
         - Go to [Trello Api][TrelloApi] and retrieve your `Api Key` and `Api Token`
@@ -102,7 +124,9 @@ const connection = mysql.createConnection({
     - My database is setup as:
 ![alt text](https://raw.githubusercontent.com/Lincoln23/Data-Integration/master/DataIntegration.png)
 
-## Enable/Disable Integration
+## Integrations
+
+## Enable/Disable-Integration
 Able to disable/enable integrations
 
 **Get** request to:
@@ -139,7 +163,6 @@ Able to disable/enable integrations
 ```   
     
 
-## Integrations
 ## Shopify
 Returns the statistics about your store
 
@@ -172,7 +195,7 @@ Example
   ```sh                       
      http://localhost:3000/shopify?shop=my-store&accountName=shopify1
 ```
-## Google Sheets
+## Google-Sheets
   Returns data from the spreadsheet mapped to a field and allows users to post data to the spreadsheet
   
 **Get** request to:
@@ -293,7 +316,7 @@ Returns all emails and relevent metadata
     http://localhost:3000/gmail?limit=20&accountName=Lincoln
 ```
 
-## Google Calendar
+## Google-Calendar
 Retrives all your events and when you are free/busy
 
 **Get** request to:
@@ -324,7 +347,7 @@ Retrives all your events and when you are free/busy
     http://localhost:3000/calendar?id=example@gmail.com&start=2018-03-01T13:00:00-00:00&end=2018-05-29T00:00:00-00:00&accountName=Lincoln&id=example@gmail.com
 ```
 
-## Google analytics
+## Google-analytics
 Returns real-time analytics and data over time
 
 **Get** request to:
