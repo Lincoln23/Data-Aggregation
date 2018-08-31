@@ -19,6 +19,15 @@ Built using:
   - Specify an `accountName` for each integration to use mutliple accounts
   - **OAuth 2.0 code grant flow**
   - **Setup**:
+    - *Shopify*
+        - Create a developer account [here][shopify]
+        - Click *Create Apps* in the *Apps* section
+        - Set App name as `Data Integration`
+        - Set App Url `http(s)://{Your IP address}:3000
+        - Choose `Shopify admin (required)` and click create app
+        - retrieve your `Api Key` and `API secret key`
+        - In `App setup`
+            - put `http(s)://{Your IP address}:3333` in the `Whitelisted redirection URL(s)` section and save
     -  *Google Apps (Gmail,Calendar,Sheets and Analytics)*
         - Create OAuth token at [Google Api Console][Google Api Console]
         - Enable: `Analytics API`, `Gmail API`, `Google Calendar API` and ` Google Sheets API` in your dashboard
@@ -44,28 +53,39 @@ Built using:
         - Scroll down to retrieve your `Client ID` and `Client Secret`
         - Under `Scopes` Select `Contacts` .....
         
- - `webAuth.js` - To obtain `Access Tokens` and `Refresh Tokens` send a **Get** request to: 
-  ```sh                       
+## Getting OAuth2.0 Tokens 
+
+- `webAuth.js` - To obtain `Access Tokens` and `Refresh Tokens` 
+- send a **Get** request to: 
+```sh                       
 http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_secret=${client_secret}&accountName=${account Name}
 ```
-- Credentials will be save to your SQL database in `Accesskeys` 
+
+ ****Note****, when authorizing `shopify` an additional paramter of `shop` is required
+Example:
+```sh                       
+http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_secret=${client_secret}&accountName=${account Name}&shop=${your shop name}
+```
+
+- Credentials will be save to your MySQL database in `Accesskeys` 
  - `refreshToken.js` will check for tokens that are about to expire and refresh for new access token automatically 
  
-  - **Api Keys**
+ ## Api Keys
   - **Setup**:
     -  *Trello*
         - Go to [Trello Api][TrelloApi] and retrieve your `Api Key` and `Api Token`
     - *MailChimp*
         - Go to [MailChimp][MailChimpApi] to retrieve your `Api Key`
+        
+Current you have to manually put the api keys in the `ApiKeys` table in the database
 
-
-**Scheduling**
+## Scheduling
   - Under `tasks` in `DataFire.yml`
   - Use `Cron` to schedule your tasks, default is set to every 12 hours
     -   ```sh                       
         schedule: cron(${your cron value})
         ```
- 
+## Database
 **MySQL** 
   - Set up SQL connection is `actions/config.json`
   ```sh                       
@@ -118,6 +138,38 @@ Able to disable/enable integrations
     
 
 ## Integrations
+## Shopify
+Returns the statistics about your store
+
+**Get** request to:
+  ```sh                       
+    http://localhost:3000/shopify?shop=${your shop name}&accountName=${your account Name}
+```
+  - `Parameters` 
+    - `shop`:  Required - Your shops name (found in the url beofre `.myshopify`)
+         ````sh 
+        https://${this value}.myshopify.com/admin
+         ````
+        -  This can be passed as parameters in the **GET** request or set as a default
+        -  *To set as default* : retrieve your `shop name` in the url of your store's admin page and store into the `inputs` array in `shopify.js`
+
+         ```sh                       
+        {
+            type: "string",
+            title: "shop",
+            default: "${your shop name}"
+        },
+        ```
+        **OR**
+        ```sh                       
+        http://localhost:3000/shopify?shop=${your shop name}&accountName=${your account Name}
+        ```
+    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
+    
+Example 
+  ```sh                       
+     http://localhost:3000/shopify?shop=my-store&accountName=shopify1
+```
 ## Google Sheets
   Returns data from the spreadsheet mapped to a field and allows users to post data to the spreadsheet
   
@@ -149,11 +201,12 @@ inputs: [{
 ```
   - `Parameters`
     - `spreadsheetId`: Required
-        -  This can be passed as a parameter in the **GET** request or set as a default
-        -  The id is found in your spreadsheet URL, then sotre your id in the `inputs` array in `create.js` and `sheets.js`
         ```sh                       
             https://docs.google.com/spreadsheets/d/${this value}/
          ```
+        -  This can be passed as a parameter in the **GET** request or set as a default
+        -  The id is found in your spreadsheet URL, then sotre your id in the `inputs` array in `create.js` and `sheets.js`
+
          ```sh                       
         {
             type: "string",
@@ -197,11 +250,12 @@ Returns the company's statistics and follow history
 ```
   - `Parameters` 
     - `id`:  Required - Your Company's id (found in the url on the admin page)
-        -    This can be passed as parameters in the **GET** request or set as a default
-         - retrieve your `CompanyID` in the url of your company's admin page and store into the `inputs` array in `linkedin.js`
          ````sh 
          https://www.linkedin.com/company/${This Value}/admin 
          ````
+        -    This can be passed as parameters in the **GET** request or set as a default
+         - retrieve your `CompanyID` in the url of your company's admin page and store into the `inputs` array in `linkedin.js`
+
          ```sh                       
         {
             type: "string",
@@ -444,12 +498,14 @@ http://localhost:3000/hubspot?accountName=hubspot1
   - `errors.log` logs all warning and errors
   
 [Logging is done with winston.js][winston]
+- Time format is in UTC
 
 to edit formatting go to `actions/winston`
 
 ## Result
   - Response is in **JSON** 
-
+  
+[shopify]:<https://developers.shopify.com/>
 [SalesForceApp]: <https://na72.lightning.force.com/lightning/setup/NavigationMenus/home>
 [Quickbooks]: <https://developer.intuit.com/v2/ui#/app/startcreate>
 [TrelloApi]: <https://trello.com/app-key>
