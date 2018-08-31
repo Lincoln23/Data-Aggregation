@@ -16,14 +16,14 @@ let integration;
 let accountName;
 let clientId;
 let clientSecret;
-let myshop;
+let shop;
 
 let getShopifyURL = (shop, apikey, secret) => {
     let shopify = new shopifyAPI({
         shop: shop,
         shopify_api_key: apikey,
         shopify_shared_secret: secret,
-        shopify_scope: 'read_content,read_customers,read_orders',
+        shopify_scope: 'read_content,read_themes,read_products,read_product_listings,read_customers,read_orders,read_draft_orders,read_inventory,read_locations,read_script_tags,read_fulfillments,read_shipping,read_checkouts,read_reports,read_price_rules,read_marketing_events,read_resource_feedbacks,read_shopify_payments_payouts,unauthenticated_read_product_listings,unauthenticated_write_checkouts,unauthenticated_read_content',
         redirect_uri: 'http://localhost:3333',
         nonce: '123',
         verbose: false,
@@ -34,13 +34,6 @@ let getShopifyURL = (shop, apikey, secret) => {
     }
 
 };
-
-
-
-
-
-
-
 let getOAuthURL = (clientId, redirect, integration) => {
     let scope = webUrl[integration].scopes;
     let url = webUrl[integration].code;
@@ -73,7 +66,7 @@ let getOAuthURL = (clientId, redirect, integration) => {
 
 let access = (code, id, secret, redirect_url, state2, integration, accountName) => {
     let tokenUrl = webUrl[integration].token;
-    if (state === state2) {
+    if (state == state2) {
         let options = {
             method: 'POST',
             url: tokenUrl,
@@ -164,13 +157,13 @@ module.exports = new datafire.Action({
         title: "accountName"
     }, {
         type: "string",
-        title: "myshop",
+        title: "shop",
         default: "",
     }],
 
     handler: async (input, context) => {
         const redirect_url = 'http://localhost:3333'; // use context obj to get url path to replace localhost
-        myshop = input.myshop;
+        shop = input.shop;
         integration = input.integration;
         clientId = input.client_id;
         clientSecret = input.client_secret;
@@ -182,7 +175,7 @@ module.exports = new datafire.Action({
         config.database = await setup.getSchema("abc"); // use context to get url here
         let shopifyObj = null;
         if (input.integration === "shopify") {
-            let tempObj = getShopifyURL(myshop, clientId, clientSecret);
+            let tempObj = getShopifyURL(shop, clientId, clientSecret);
             shopifyObj = tempObj.shopify;
             url = tempObj.url;
         } else {
@@ -193,13 +186,12 @@ module.exports = new datafire.Action({
                 shopifyObj.exchange_temporary_token(req.query, async function (err, data) {
                     await insertIntoDB(data, accountName, integration, clientId, clientSecret);
                 });
-                res.send("Done!"); // equivalent to res.write + res.end
             } else {
                 code = decodeURIComponent(req.query.code);
                 state2 = decodeURIComponent(req.query.state);
                 access(code, clientId, clientSecret, redirect_url, state2, integration, accountName);
-                res.send("Done!"); // equivalent to res.write + res.end
             }
+            res.send("Done!"); // equivalent to res.write + res.end
         });
         return {
             "authUrl": url,
