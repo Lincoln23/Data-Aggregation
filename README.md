@@ -370,7 +370,7 @@ Returns real-time analytics and data over time
     - `accountName`: the account name you assigned it when you authorized with `WebAuth`
     
     - `metrics` - A comma-separated list of Analytics metrics. E.g., 'ga:sessions, ga:pageviews'. At least one metric must be specified. 
-      **To change this you have to do it in the source code in the `metrics field`**
+      **To change this you have to do it in the source code in the `metrics field` refer to [this][analytics_metrics] and find the method for the parameters available**
 
 **Example:** 
   ```sh                       
@@ -566,4 +566,5 @@ to edit formatting go to `actions/winston`
 [quickbooksID]:<https://community.intuit.com/articles/1517319-how-do-i-find-my-company-id>
 [winston]:<https://github.com/winstonjs/winston>
 [pm2]:<https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04>
+[analytics_metrics]:<https://app.datafire.io/integrations/google_analytics>
   
