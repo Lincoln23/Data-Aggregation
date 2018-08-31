@@ -507,6 +507,12 @@ http://localhost:3000/hubspot?accountName=hubspot1
 
 to edit formatting go to `actions/winston`
 
+## Debugging 
+- Using WebStorm IDE
+    - Configuration:
+        - Working Directory: `projects\actions`
+        - JavaScript File: `projects\startup.js`
+
 ## Result
   - Response is in **JSON** 
   
