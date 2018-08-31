@@ -13,6 +13,9 @@ Built using:
   - Oauth redirect URL is on hosted on port **3333**
   - Run `npm install` and `npm install -g datafire`
   - Start server by ` datafire serve --tasks true ` or by `datafire serve --port {port number}`
+  - Can also be started from `startup.js` using `Node startup.js` in the root directory 
+  - Follow this 
+  - Follow this [guide][pm2] to setup the service with pm2
  
  
 ## **Authorization**
@@ -23,7 +26,7 @@ Built using:
         - Create a developer account [here][shopify]
         - Click *Create Apps* in the *Apps* section
         - Set App name as `Data Integration`
-        - Set App Url `http(s)://{Your IP address}:3000
+        - Set App Url `http(s)://{Your IP address}:3000`
         - Choose `Shopify admin (required)` and click create app
         - retrieve your `Api Key` and `API secret key`
         - In `App setup`
@@ -520,4 +523,5 @@ to edit formatting go to `actions/winston`
 [calendarID]:<https://docs.simplecalendar.io/find-google-calendar-id/>
 [quickbooksID]:<https://community.intuit.com/articles/1517319-how-do-i-find-my-company-id>
 [winston]:<https://github.com/winstonjs/winston>
+[pm2]:<https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04>
   
