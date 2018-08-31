@@ -368,6 +368,9 @@ Returns real-time analytics and data over time
     - `accountId` Required - Account Id for the custom data sources to retrieve.
     - `webPropertyId` Required - Web property Id for the custom data sources to retrieve.
     - `accountName`: the account name you assigned it when you authorized with `WebAuth`
+    
+    - `metrics` - A comma-separated list of Analytics metrics. E.g., 'ga:sessions, ga:pageviews'. At least one metric must be specified. 
+      **To change this you have to do it in the source code in the `metrics field`**
 
 **Example:** 
   ```sh                       
