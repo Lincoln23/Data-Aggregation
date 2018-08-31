@@ -362,8 +362,7 @@ Returns real-time analytics and data over time
      https://localhost:3000/analytics?id={id}&metrics={metrics}&start={start}&end={end}&accountName=${account Name}
 ```
   - `Parameters` 
-    - `ids`:  Required - Unique table ID for retrieving Analytics data. Table ID is of the form ga:XXXX, where XXXX is the Analytics view (profile) ID. format must be in `ga:{XXXX}`
-    - `metrics` Optional - A comma-separated list of Analytics metrics. E.g., 'ga:sessions, ga:pageviews'. At least one metric must be specified. Default: " ga:sessions, ga:pageviews "
+    - `ids`:  Required - Unique table ID for retrieving Analytics data. Table ID is of the form ga:XXXX, where XXXX is the Analytics view (profile) ID. **format must be in `ga:{XXXX}`**
     - `start` Optional - Start date for fetching Analytics data. Requests can specify a start date formatted as YYYY-MM-DD, or as a relative date (e.g., today, yesterday, or 7daysAgo). Default: 7daysAgo
     - `end` Optional - End date for fetching Analytics data. Request can should specify an end date formatted as YYYY-MM-DD, or as a relative date (e.g., today, yesterday, or 7daysAgo). Default: today
     - `accountId` Required - Account Id for the custom data sources to retrieve.
