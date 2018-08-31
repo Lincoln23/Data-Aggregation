@@ -359,7 +359,7 @@ Returns real-time analytics and data over time
 
 **Get** request to:
   ```sh                       
-     https://localhost:3000/analytics?id={id}&metrics={metrics}&start={start}&end={end}&accountName=${account Name}
+http://localhost:3000/analytics?accountName=${accountName}&ids=${ga:XXXX}&accountId=${account Id}&webPropertyId=${web property Id}
 ```
   - `Parameters` 
     - `ids`:  Required - Unique table ID for retrieving Analytics data. Table ID is of the form ga:XXXX, where XXXX is the Analytics view (profile) ID. **format must be in `ga:{XXXX}`**
@@ -374,7 +374,7 @@ Returns real-time analytics and data over time
 
 **Example:** 
   ```sh                       
-    http://localhost:3000/analytics?id={ga:12341}&metrics=ga:sessions&accountName=Lincoln
+    http://localhost:3000/analytics?accountName=analytics1&ids=ga:{12345}&accountId=12345678&webPropertyId=UA-1234124-1
 ```
 
 ## MailChimp
