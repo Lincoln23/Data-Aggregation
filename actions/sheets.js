@@ -60,7 +60,7 @@ module.exports = new datafire.Action({
                 valueRenderOption: "UNFORMATTED_VALUE",
             }, context))
             .then(async data => {
-                let rows = (data.values || []).map((row, rowNum) => {
+                return (data.values || []).map((row, rowNum) => {
                     let obj = {
                         id: rowNum + 1
                     };
@@ -69,7 +69,6 @@ module.exports = new datafire.Action({
                     });
                     return obj;
                 });
-                return rows;
             });
         let db = new setup.database(config);
         try {
