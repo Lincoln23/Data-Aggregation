@@ -374,7 +374,7 @@ http://localhost:3000/analytics?accountName=${accountName}&ids=${ga:XXXX}&accoun
 
 **Example:** 
   ```sh                       
-    http://localhost:3000/analytics?accountName=analytics1&ids=ga:{12345}&accountId=12345678&webPropertyId=UA-1234124-1
+    http://localhost:3000/analytics?accountName=analytics1&ids=ga:12345&accountId=12345678&webPropertyId=UA-1234124-1
 ```
 
 ## MailChimp
