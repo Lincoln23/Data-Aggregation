@@ -2,6 +2,12 @@
 
 An automated data integration system that authorizes the user and seamlessly updates/pulls data from 10+ services on a set schedule. Data is stored into a MySQL database
 
+#### Built using:
+  - [DataFire][Datafire]
+  - [Node.js (version 8)][Node]
+  - [AWS EC2][EC2] or on localhost
+  - [AWS RDS][RDS] (MySQL)
+
 ### Table of Contents  
 - [Usage](#usage)
 - [Authorization](#authorization)
@@ -29,11 +35,7 @@ An automated data integration system that authorizes the user and seamlessly upd
 - [Result](#result)
 
 
-Built using:
-  - [DataFire][Datafire]
-  - [Node.js (version 8)][Node]
-  - [AWS EC2][EC2] or on localhost
-  - [AWS RDS][RDS] (MySQL)
+
 ## Usage
 
   - By default the service is hosted on port **3000**
@@ -230,7 +232,7 @@ inputs: [{
     }], 
 ```
   - `Parameters`
-    - `spreadsheetId`: Required
+    - `id`: Required, Your SpreadSheet ID
         ```sh                       
             https://docs.google.com/spreadsheets/d/${this value}/
          ```
@@ -246,13 +248,13 @@ inputs: [{
         ```
         **OR**
       ```sh                       
-        http://localhost:3000/sheets?accountName=${account Name}&spreadsheetId=${your id}
+        http://localhost:3000/sheets?accountName=${account Name}&id=${your id}
          ```
     - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
 
 **Example:**
   ```sh                       
-    http://localhost:3000/sheets?accountName=gmail1&spreadsheetId=1htLGczzfdgsd43gXSG4I324dfQQ
+    http://localhost:3000/sheets?accountName=gmail1&id=1htLGczzfdgsd43gXSG4I324dfQQ
 ```
 
 To add data to your spreadsheet send a **POST** Request to:
