@@ -10,11 +10,10 @@ Built using:
 ## Usage
 
   - By default the service is hosted on port **3000**
-  - Oauth redirect URL is on hosted on port **3333**
+  - OAuth redirect URL is on hosted on port **3333**
   - Run `npm install` and `npm install -g datafire`
   - Start server by ` datafire serve --tasks true ` or by `datafire serve --port {port number}`
   - Can also be started from `startup.js` using `Node startup.js` in the root directory 
-  - Follow this 
   - Follow this [guide][pm2] to setup the service with pm2
  
  
@@ -208,7 +207,7 @@ inputs: [{
             https://docs.google.com/spreadsheets/d/${this value}/
          ```
         -  This can be passed as a parameter in the **GET** request or set as a default
-        -  The id is found in your spreadsheet URL, then sotre your id in the `inputs` array in `create.js` and `sheets.js`
+        -   *To set as default* : The id is found in your spreadsheet URL, then store your id in the `inputs` array in `create.js` and `sheets.js`
 
          ```sh                       
         {
@@ -257,7 +256,7 @@ Returns the company's statistics and follow history
          https://www.linkedin.com/company/${This Value}/admin 
          ````
         -    This can be passed as parameters in the **GET** request or set as a default
-         - retrieve your `CompanyID` in the url of your company's admin page and store into the `inputs` array in `linkedin.js`
+         -  *To set as default* : retrieve your `CompanyID` in the url of your company's admin page and store into the `inputs` array in `linkedin.js`
 
          ```sh                       
         {
@@ -304,7 +303,7 @@ Retrives all your events and when you are free/busy
   - `Parameters` 
     - `id`:  Required - Your calendar id (found in the setting page)
         -    This can be passed as a parameter in the **GET** request or set as a default
-        -  [Instructions here for finding id][calendarID] then store your id in the `inputs` array in `calendar.js`
+        -   *To set as default* : [Instructions here for finding id][calendarID] then store your id in the `inputs` array in `calendar.js`
          ```sh                       
         {
             type: "string",
@@ -335,9 +334,9 @@ Returns real-time analytics and data over time
   - `Parameters` 
     - `id`:  Required - Unique table ID for retrieving Analytics data, format ga:{id}
     - `metrics` Optional - A comma-separated list of Analytics metrics. E.g., 'ga:sessions, ga:pageviews'. At least one metric must be specified. Default: " ga:sessions, ga:pageviews "
-    - `start` Optioanl - Start date for fetching Analytics data. Requests can specify a start date formatted as YYYY-MM-DD, or as a relative date (e.g., today, yesterday, or 7daysAgo). Default: 2017-01-10
+    - `start` Optional - Start date for fetching Analytics data. Requests can specify a start date formatted as YYYY-MM-DD, or as a relative date (e.g., today, yesterday, or 7daysAgo). Default: 2017-01-10
     - `end` Optional - End date for fetching Analytics data. Request can should specify an end date formatted as YYYY-MM-DD, or as a relative date (e.g., today, yesterday, or 7daysAgo). Default: 2017-07-10
-    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
+    - `accountName`: the account name you assigned it when you authorized with `WebAuth`
 
 **Example:** 
   ```sh                       
@@ -368,7 +367,7 @@ Returns all contact and opportunities
      https://localhost:3000/salesforce?accountName=${account Name}
 ```
   - `Parameters` 
-    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
+    - `accountName`: the account name you assigned it when you authorized with `WebAuth`
     
 **Example:**
   ```sh                       
@@ -376,7 +375,7 @@ Returns all contact and opportunities
 ```
 
 ## Xero
-Retrives information about your Accounts, Contacts, BankTranscations, Employees, Invoices, Organisations and Payments
+Retries information about your Accounts, Contacts, BankTransactions, Employees, Invoices, Organisations and Payments
 
 **Get** request to:
   ```sh                       
@@ -384,7 +383,7 @@ Retrives information about your Accounts, Contacts, BankTranscations, Employees,
 ```
 Returns information about accounts, contacts, bank transactions, employees, invoices, organisation, payments
   - `Parameters` 
-    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
+    - `accountName`: the account name you assigned it when you authorized with `WebAuth`
     
 **Example:**
   ```sh                       
@@ -403,6 +402,7 @@ Returns information for every board, List, cards(checklists and members)
     - `idMember`: Required - Your member ID
         -   This can be passed as a parameter in the **GET** request or set as a default
         - Can be found in your profile page beside your name. i.e. lincoln23
+    - *To set as default*:
          ```sh                       
         {
             type: "string",
@@ -414,7 +414,7 @@ Returns information for every board, List, cards(checklists and members)
         ```sh                       
         https://localhost:3000/trello?accountName=${account Name}&id=${your id}
         ```
-    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
+    - `accountName`: the account name you assigned it when you authorized with `WebAuth`
     
 **Example:**
 ```sh                       
@@ -422,7 +422,7 @@ Returns information for every board, List, cards(checklists and members)
 ```
 
 ## QuickBooks
-Returns information about accounts, bills, and incvoices
+Returns information about accounts, bills, and invoices
 
 **Get** request to:
   ```sh                       
@@ -432,7 +432,9 @@ Returns information about accounts, bills, and incvoices
      - `id`:  Required
         -   This can be passed as a parameter in the **GET** request or set as a default
         -  [Instructions here for finding id][quickbooksID] then store your id in the `inputs` array in `calendar.js`
-         ```sh                       
+        - *To set as default* :    
+         ```sh            
+        
         {
             type: "string",
             title: "id",
@@ -443,7 +445,7 @@ Returns information about accounts, bills, and incvoices
         ```sh                       
         https://localhost:3000/quickbooks?accountName=${account Name}&id=${your id}
         ```
-    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
+    - `accountName`: the account name you assigned it when you authorized with `WebAuth`
     
 **Example:**
 ```sh                       
@@ -453,7 +455,7 @@ https://localhost:3000/quickbooks?accountName=quickbooks1&id=1923445979
 
 
 ## MySQL or MongoDB
-Pulls information from an external MySql database or Mongo Database to your own MySQl database. Data is stored as a JSON Array as a `TEXT` data type.
+Pulls information from an external MySQL database or Mongo Database to your own MySQl database. Data is stored as a JSON Array as a `TEXT` data type.
 
 **Get** request to:
   ```sh                       
@@ -488,7 +490,7 @@ Returns all contacts and companies
      http://localhost:3000/hubspot?accountName=${accountName}
 ```
   - `Paramters`
-    - `accountName`: the account name you assigned it when you authenicated with `WebAuth`
+    - `accountName`: the account name you assigned it when you authorized with `WebAuth`
 
 **Example:**
 ```sh                       
