@@ -3,25 +3,30 @@
 An automated data integration system that authorizes the user and seamlessly updates/pulls data from 10+ services on a set schedule. Data is stored into a MySQL database
 
 ### Table of Contents  
-- [Usage](#Usage)
-- [Authorization](#Authorization)
-  * [OAuth2.0](#OAuth2.0-code-grant-flow)
-  [API keys](#Api-Keys)
-- [Scheduling](#Scheduling)
-- [Database Configuration](#Database)
-- [Integrations](#Integrations)
-  * [Enable/Disable-Integration](#Enable/Disable-Integration)
+- [Usage](#usage)
+- [Authorization](#authorization)
+  * [OAuth2.0](#oauth20-code-grant-flow)
+  * [API keys](#api-keys)
+- [Scheduling](#scheduling)
+- [Database Configuration](#database)
+- [Integrations](#integrations)
+  * [Enable/Disable-Integration](#enabledisable-integration)
   * [Shopify](#shopify)
-  * [Google Sheets](#Google-Sheets)
-  * [Linkedin](#Linkedin)
-  * [Gmail](#Gmail)
-  * [Google-Calendar](#Google-Calendar)
-  * [Google-analytics](#Google-analytics)
-  * [][#]
-  * [][#]
-  * [][#]
-  * [][#]
-  * [][#]
+  * [Google Sheets](#google-sheets)
+  * [Linkedin](#linkedin)
+  * [Gmail](#gmail)
+  * [Google-Calendar](#google-calendar)
+  * [Google-analytics](#google-analytics)
+  * [Mailchimp](#mailchimp)
+  * [Salesforce](#salesforce)
+  * [Xero](#xero)
+  * [Trello](#trello)
+  * [Quickbooks](#quickbooks)
+  * [MySQL or MongoDB](#mysql-or-mongodb)
+  * [Hubspot](#hubspot)
+- [Logging](#logging)
+- [Debugging](#debugging)
+- [Result](#result)
 
 
 Built using:
