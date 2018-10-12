@@ -104,13 +104,13 @@ let insertIntoDB = async (data, accountName, integration, client_id, client_secr
     }
     let database = new setup.database(config);
     try {
-        let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS AccessKeys(AccountName varchar(150) NOT NULL PRIMARY KEY, IntegrationName varchar(255), AccessToken varchar(1024), RefreshToken varchar(1024), ClientId varchar(1024), ClientSecret varchar(1024), Expiry int(11), ExpiryDate datetime, Active tinyint(1))";
-        await database.query(createTableIfNotExist).catch(err => {
+        const CREATE_TABLE = "CREATE TABLE IF NOT EXISTS AccessKeys(AccountName varchar(150) NOT NULL PRIMARY KEY, IntegrationName varchar(255), AccessToken varchar(1024), RefreshToken varchar(1024), ClientId varchar(1024), ClientSecret varchar(1024), Expiry int(11), ExpiryDate datetime, Active tinyint(1))";
+        await database.query(CREATE_TABLE).catch(err => {
             logger.errorLog.error("Error creating table AccessKey " + err);
         }).then(() => {
-            let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
-            let values = [accountName, integration, data.access_token, data.refresh_token, data.expires_in, date, client_id, client_secret];
-            database.query(sql, values).catch(err => {
+            const SQL = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret, Active) VALUES (?,?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE IntegrationName = VALUES(IntegrationName), AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+            let values = [accountName, integration, data.access_token, data.refresh_token, data.expires_in, date, client_id, client_secret,1];
+            database.query(SQL, values).catch(err => {
                 logger.errorLog.error("Error inserting into AccessKeys for " + accountName + " " + err);
             });
         });
@@ -161,7 +161,7 @@ module.exports = new datafire.Action({
         default: "",
     }],
 
-    handler: async (input, context) => {
+    handler: async (input) => {
         const redirect_url = 'http://localhost:3333'; // use context obj to get url path to replace localhost
         shop = input.shop;
         integration = input.integration;

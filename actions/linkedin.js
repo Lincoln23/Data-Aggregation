@@ -1,8 +1,8 @@
 "use strict";
-let datafire = require('datafire');
+const datafire = require('datafire');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
 
 //tokens last 60 days and does not provide refresh tokens, need to go through regular webAuth authorize again
@@ -25,11 +25,11 @@ module.exports = new datafire.Action({
     },],
     handler: async (input, context) => {
         let linkedin = null;
-        config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting Credentials in linkedin for " + input.accountName);
-            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'linkedin' AND Active = 1 AND AccountName = ? ", input.accountName).then(result => {
+            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'linkedin' AND Active = 1 AND AccountName = ? "
+            await database.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 linkedin = require('@datafire/linkedin').create({
                     access_token: result.AccessToken,
@@ -54,7 +54,7 @@ module.exports = new datafire.Action({
         }
         logger.accessLog.verbose("Syncing linkedin for " + input.accountName);
         //gets the Company's history
-        const companyHistory = new Promise((resolve, reject) => {
+        const companyHistory = new Promise((resolve) => {
             resolve(linkedin.companies.id.historical_follow_statistics.get({
                 id: input.id,
                 'time-granularity': input.filter,
@@ -63,7 +63,7 @@ module.exports = new datafire.Action({
             }, context));
         });
         //gets the Company's Statistics
-        const companyStatistics = new Promise((resolve, reject) => {
+        const companyStatistics = new Promise((resolve) => {
             resolve(linkedin.companies.id.company_statistics.get({
                 id: input.id,
                 format: "json",

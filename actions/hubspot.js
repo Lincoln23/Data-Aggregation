@@ -1,8 +1,8 @@
 const Hubspot = require('hubspot');
 const datafire = require('datafire');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
 
 module.exports = new datafire.Action({
@@ -10,14 +10,14 @@ module.exports = new datafire.Action({
         type: "string",
         title: "accountName",
     }],
-    handler: async (input, context) => {
+    handler: async (input) => {
         let hubspot = null;
         let res = [];
-        config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in hubspot for " + input.accountName);
-            await database.query("SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
+            const QUERY_FOR_KEYS = "SELECT AccessToken FROM AccessKeys WHERE IntegrationName = 'hubspot' AND Active = 1 AND AccountName = ?"
+            await database.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 hubspot = new Hubspot({accessToken: result.AccessToken});
             }).catch(e => {

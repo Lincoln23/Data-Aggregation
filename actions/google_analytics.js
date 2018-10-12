@@ -1,8 +1,8 @@
 "use strict";
-let datafire = require('datafire');
+const datafire = require('datafire');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
 
 module.exports = new datafire.Action({
@@ -28,13 +28,12 @@ module.exports = new datafire.Action({
         title: "webPropertyId"
     }],
     handler: async (input, context) => {
-        console.log(context);
         let google_analytics = null;
-        config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in google_analytics for " + input.accountName);
-            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_analytics' AND Active = 1 AND AccountName= ?", input.accountName).then(result => {
+            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_analytics' AND Active = 1 AND AccountName= ?"
+            await database.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 google_analytics = require('@datafire/google_analytics').create({
                     access_token: result.AccessToken,
@@ -58,7 +57,7 @@ module.exports = new datafire.Action({
             return {error: "Invalid AccountName or integration disabled"};
         }
         logger.accessLog.verbose("Syncing google_analytics for " + input.accountName);
-        const getData = new Promise((resolve, reject) => {
+        const getData = new Promise((resolve) => {
             resolve(google_analytics.data.ga.get({
                 'ids': input.ids,
                 'start-date': input.start,
@@ -66,17 +65,16 @@ module.exports = new datafire.Action({
                 'metrics': 'ga:sessions,ga:pageviews',
             }, context));
         });
-        const getRealTimeData = new Promise((resolve, reject) => {
+        const getRealTimeData = new Promise((resolve) => {
             resolve(google_analytics.data.realtime.get({
                 'ids': input.ids,
                 'metrics': "rt:activeUsers",
             }, context));
         });
-
-        const getAccountSummaries = new Promise((resolve, reject) => {
+        const getAccountSummaries = new Promise((resolve) => {
             resolve(google_analytics.management.accountSummaries.list({}, context));
         });
-        const getCustomDataSources = new Promise((resolve, reject) => {
+        const getCustomDataSources = new Promise((resolve) => {
             resolve(google_analytics.management.customDataSources.list({
                 accountId: input.accountId,
                 webPropertyId: input.webPropertyId,

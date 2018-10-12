@@ -32,11 +32,11 @@ module.exports = new datafire.Action({
         }],
     handler: async (input, context) => {
         let google_sheets = null;
-        config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting Credentials in google_Sheets for " + input.accountName);
-            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
+            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND Active = 1 AND AccountName = ?"
+            await database.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 google_sheets = require('@datafire/google_sheets').create({
                     access_token: result.AccessToken,

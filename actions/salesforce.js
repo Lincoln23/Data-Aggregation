@@ -19,11 +19,11 @@ module.exports = new datafire.Action({
         let clientId;
         let clientSecret;
         let accountName;
-        config.database = await setup.getSchema("abc");
         let databaseCred = new setup.database(config);
         try {
             logger.accessLog.info("Getting Credentials in    Salesforce for " + input.accountName);
-            await databaseCred.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret,AccountName FROM AccessKeys WHERE  IntegrationName = 'salesforce' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
+            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret,AccountName FROM AccessKeys WHERE  IntegrationName = 'salesforce' AND Active = 1 AND AccountName = ?"
+            await databaseCred.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 refreshToken = result.RefreshToken;
                 clientId = result.ClientId;
@@ -62,17 +62,17 @@ module.exports = new datafire.Action({
                     if (err) logger.errorLog.error("Failed creating file " + err);
                     logger.accessLog.info("Salesforce file was created and saved");
                 });
-                opportunitySyncTime = contactsSyncTime = "1970-01-15T00:00:00.000Z";
-                let sqlSyncContact = 'INSERT INTO SyncTime (Name, Time) VALUES (?,?)';
+                opportunitySyncTime = contactsSyncTime = "1970-01-15T00:00:00.000Z"; //initialize first time syncing
+                const INSERT_CONTACT_SYNC_TIME = 'INSERT INTO SyncTime (Name, Time) VALUES (?,?)';
                 let syncContactValues = ["SalesForceContact", contactsSyncTime];
-                database.query(sqlSyncContact, syncContactValues).then(() => {
+                database.query(INSERT_CONTACT_SYNC_TIME, syncContactValues).then(() => {
                 }).catch((e) => {
                     logger.errorLog.error("Error inserting to SyncTime for SalesForceContact " + e);
                 });
 
-                let sqlSyncOpportunity = 'INSERT INTO SyncTime (Name, Time) VALUES (?,?)';
+                const INSERT_OPPORTUNITY_SYNC_TIME = 'INSERT INTO SyncTime (Name, Time) VALUES (?,?)';
                 let opportunityValues = ["SalesForceOpportunity", opportunitySyncTime];
-                database.query(sqlSyncOpportunity, opportunityValues).then(() => {
+                database.query(INSERT_OPPORTUNITY_SYNC_TIME, opportunityValues).then(() => {
                 }).catch((e) => {
                     logger.errorLog.error("Error inserting to SyncTime for SalesForceOpportunity " + e);
 
@@ -94,25 +94,25 @@ module.exports = new datafire.Action({
                     throw(e);
                 }
             }).then(result => {
-                result.records.forEach(element => {
+                result.records.forEach(contact => {
                     newDataContact = 1; // there is new data so set to 1
-                    if (element.Account == null) {//For objects that are null, any properties within need to be set as null as well
-                        element.Account = {
+                    if (contact.Account == null) {//For objects that are null, any properties within need to be set as null as well
+                        contact.Account = {
                             "Name": null,
                             "Id": null,
                         }
-                    } else if (element.Owner == null) {
-                        element.Owner = {
+                    } else if (contact.Owner == null) {
+                        contact.Owner = {
                             "Alias": null
                         }
                     }
-                    let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS SalesForceContact(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, ContactId varchar(1024), Name varchar(1024),Email varchar(1024), Phone varchar(1024), AccountName varchar(1024), AccountID varchar(1024), Alias varchar(1024))";
-                    database.query(createTableIfNotExist).create(err => {
+                    const CREATE_TABLE = "CREATE TABLE IF NOT EXISTS SalesForceContact(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, ContactId varchar(1024), Name varchar(1024),Email varchar(1024), Phone varchar(1024), AccountName varchar(1024), AccountID varchar(1024), Alias varchar(1024))";
+                    database.query(CREATE_TABLE).create(err => {
                         logger.errorLog.error("Error creating table SalesForceContact Msg: " + err);
                     }).then(() => {
-                        let sqlContact = 'INSERT INTO SalesForceContact (ContactId, Name, Email, Phone,AccountName, AccountID,Alias) VALUES (?,?,?,?,?,?,?)';
-                        let contactValues = [element.Id, element.Name, element.Email, element.Phone, element.Account.Name, element.Account.Id, element.Owner.Alias];
-                        database.query(sqlContact, contactValues).catch(e => {
+                        const INSERT_CONTACTS = 'INSERT INTO SalesForceContact (ContactId, Name, Email, Phone,AccountName, AccountID,Alias) VALUES (?,?,?,?,?,?,?)';
+                        let contactValues = [contact.Id, contact.Name, contact.Email, contact.Phone, contact.Account.Name, contact.Account.Id, contact.Owner.Alias];
+                        database.query(INSERT_CONTACTS, contactValues).catch(e => {
                             logger.errorLog.error("Error inserting to SyncTime for SalesForceContact " + e);
                         });
                     })
@@ -120,8 +120,8 @@ module.exports = new datafire.Action({
                 });
             }).then(async () => {
                 if (newDataContact) { //only update time if there is new data
-                    let sqlContact = 'Update SyncTime Set Time = ? WHERE Name = "SalesForceContact" ';
-                    await database.query(sqlContact, currentTime).catch(e => {
+                    const UPDATE_SYNC_TIME = 'Update SyncTime Set Time = ? WHERE Name = "SalesForceContact" ';
+                    await database.query(UPDATE_SYNC_TIME, currentTime).catch(e => {
                         logger.errorLog.error("Error updating SyncTime for SalesForceContact " + e);
                     });
                 }
@@ -135,7 +135,7 @@ module.exports = new datafire.Action({
             });
 
             //----------------------------------------Query for Opportunities -------------------------------------------//
-            await database.query('SELECT TIME AS Current FROM SyncTime WHERE NAME = "SalesForceOpportunity" ').then(result => {
+            await database.query('SELECT TIME AS Current FROM SyncTime WHERE NAME = "SalesForceOpportunity"').then(result => {
                 opportunitySyncTime = result[0].Current;
                 logger.accessLog.verbose("Sync Time for opportunitySyncTime: " + opportunitySyncTime);
                 return opportunitySyncTime;
@@ -146,24 +146,23 @@ module.exports = new datafire.Action({
                         q: "SELECT id, opportunity.name, Account.Name, Accountid, Amount, Createddate, closedate, stageName, expectedRevenue From Opportunity WHERE LastModifiedDate > " + time + "  ORDER BY Name ASC",
                     }, context);
                 } catch (e) {
-
                     throw(e);
                 }
             }).then(values => {
-                values.records.forEach(value => {
+                values.records.forEach(opportunity => {
                     newDataOpportunity = 1; // there is new data so set to 1
-                    if (value.Account == null) {//For objects that are null, any properties within need to be set as null as well
-                        value.Account = {
+                    if (opportunity.Account == null) {//For objects that are null, any properties within need to be set as null as well
+                        opportunity.Account = {
                             "Name": null
                         }
                     }
-                    let createTableIfNotExist = "CREATE TABLE IF NOT EXISTS SalesForceOpportunity(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, OpportunityId varchar(255), Name varchar(1024), AccountName varchar(255), AccountID varchar(255), Amount float, CloseDate varchar(255), CreatedDate varchar(255), StageName varchar(255), ExpectedRevenue varchar(255))";
-                    database.query(createTableIfNotExist).catch(e => {
+                    const CREATE_TABLE = "CREATE TABLE IF NOT EXISTS SalesForceOpportunity(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, OpportunityId varchar(255), Name varchar(1024), AccountName varchar(255), AccountID varchar(255), Amount float, CloseDate varchar(255), CreatedDate varchar(255), StageName varchar(255), ExpectedRevenue varchar(255))";
+                    database.query(CREATE_TABLE).catch(e => {
                         logger.errorLog.error("Error creating table SalesForceOpportunity Msg: " + e);
                     }).then(() => {
-                        let sqlOpportunity = 'INSERT INTO SalesForceOpportunity (OpportunityId, Name, AccountName, AccountID,Amount, CreatedDate,CloseDate,StageName,ExpectedRevenue) VALUES (?,?,?,?,?,?,?,?,?)';
-                        let opportunityValues = [value.Id, value.Name, value.Account.Name, value.AccountId, value.Amount, value.CreatedDate, value.CloseDate, value.StageName, value.ExpectedRevenue];
-                        database.query(sqlOpportunity, opportunityValues).catch(e => {
+                        const INSERT_OPPORTUNITY = 'INSERT INTO SalesForceOpportunity (OpportunityId, Name, AccountName, AccountID,Amount, CreatedDate,CloseDate,StageName,ExpectedRevenue) VALUES (?,?,?,?,?,?,?,?,?)';
+                        let opportunityValues = [opportunity.Id, opportunity.Name, opportunity.Account.Name, opportunity.AccountId, opportunity.Amount, opportunity.CreatedDate, opportunity.CloseDate, opportunity.StageName, opportunity.ExpectedRevenue];
+                        database.query(INSERT_OPPORTUNITY, opportunityValues).catch(e => {
                             logger.errorLog.error("Error in inserting into SalesForceOpportunity, Msg: " + e);
                         });
                     })
@@ -171,8 +170,8 @@ module.exports = new datafire.Action({
                 });
             }).then(async () => {
                 if (newDataOpportunity) { //only update time if there is new data
-                    let sqlOpportunity = 'Update SyncTime Set Time = ? WHERE Name = "SalesForceOpportunity" ';
-                    await database.query(sqlOpportunity, currentTime).catch(e => {
+                    const UPDATE_SYNC_TIME = 'Update SyncTime Set Time = ? WHERE Name = "SalesForceOpportunity" ';
+                    await database.query(UPDATE_SYNC_TIME, currentTime).catch(e => {
                         logger.errorLog.error("Error updating SyncTime for SalesForceOpportunity, Msg: " + e);
                     });
                 }

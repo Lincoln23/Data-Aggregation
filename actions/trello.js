@@ -16,7 +16,6 @@ module.exports = new datafire.Action({
     }],
     handler: async (input, context) => {
         let trello = null;
-        config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in trello for " + input.accountName);

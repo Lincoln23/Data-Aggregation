@@ -1,9 +1,9 @@
 "use strict";
-let datafire = require('datafire');
+const datafire = require('datafire');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let MongoClient = require('mongodb').MongoClient;
-let logger = require('./winston');
+const config = require('./config.json');
+const MongoClient = require('mongodb').MongoClient;
+const logger = require('./winston');
 //TODO orcale,microsoft sql, postgres
 
 let sqlTest = async (host, user, password, database, query) => {
@@ -54,13 +54,13 @@ let insertIntoDb = async (result, dbType,) => {
     config.database = await setup.getSchema("abc");
     let database = new setup.database(config);
     logger.accessLog.info("Inserting into externalDatabase for " + dbType);
-    let createTableIfDoesNotExists = "CREATE TABLE IF NOT EXISTS externalDatabase(id int auto_increment primary key , Date datetime , Everything text , DatabaseType varchar(100) , constraint externalDatabase_id_uindex unique (id))";
-    database.query(createTableIfDoesNotExists).catch(err => {
+    const CREATE_TABLE = "CREATE TABLE IF NOT EXISTS externalDatabase(id int auto_increment primary key , Date datetime , Everything text , DatabaseType varchar(100) , constraint externalDatabase_id_uindex unique (id))";
+    database.query(CREATE_TABLE).catch(err => {
         logger.errorLog.error("Error creating table externalDatabase " + err);
     }).then(() => {
-        let sql = "INSERT INTO externalDatabase (Date, Everything, DatabaseType) VALUES (?,?,?)";
-        let sqlValue = [new Date(), JSON.stringify(result), dbType];
-        database.query(sql, sqlValue).catch(err => {
+        const INSERT_QUERY = "INSERT INTO externalDatabase (Date, Everything, DatabaseType) VALUES (?,?,?)";
+        let sqlValues = [new Date(), JSON.stringify(result), dbType];
+        database.query(INSERT_QUERY, sqlValues).catch(err => {
             logger.errorLog.error("Error INSERTING into externalDatabase, Msg: " + err);
         });
     }).then(async () => {
@@ -94,7 +94,7 @@ module.exports = new datafire.Action({
         type: "string",
         title: "stage"
     }],
-    handler: async (input, context) => {
+    handler: async (input) => {
         let res;
         if (input.stage === "test") {
             if (input.type === "mysql") {
@@ -115,7 +115,7 @@ module.exports = new datafire.Action({
                 res = "inserting into database for " + input.host;
                 try {
                     let result = await sqlTest(input.host, input.user, input.password, input.database, input.query);
-                    insertIntoDb(result, input.type);
+                    await insertIntoDb(result, input.type);
                 } catch (e) {
                     logger.errorLog.error("Error saving MySQL database " + input.host + " " + e);
                 }
@@ -123,7 +123,7 @@ module.exports = new datafire.Action({
                 res = "inserting into database for " + input.host;
                 try {
                     let result = await mongoTest(input.host, input.database, input.query);
-                    insertIntoDb(result, input.type)
+                    await insertIntoDb(result, input.type)
                 } catch (e) {
                     logger.errorLog.error("Error saving mongo database " + input.host + " " + e);
                 }

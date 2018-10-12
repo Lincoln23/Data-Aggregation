@@ -29,8 +29,8 @@ module.exports = new datafire.Action({
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting Credentials in google_calendar for " + input.accountName);
-            const SQL = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND Active = 1 AND AccountName = ?"
-            await database.query(SQL, input.accountName).then(result => {
+            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND Active = 1 AND AccountName = ?";
+            await database.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 google_calendar = require('@datafire/google_calendar').create({
                     access_token: result.AccessToken,

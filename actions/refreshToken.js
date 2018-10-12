@@ -1,12 +1,11 @@
 "use strict";
-let request = require("request");
+const request = require("request");
 const datafire = require('datafire');
-let webUrl = require('../auth');
+const webUrl = require('../auth');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
-// let database;
 let integration;
 let accountName;
 let refreshToken;
@@ -49,10 +48,10 @@ let refreshKeys = async (accountName, id, secret, refreshToken, integration) => 
                 }
                 let database = new setup.database(config);
                 try {
-                    let sql = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
+                    const INSERT_QUERY = 'INSERT INTO AccessKeys (AccountName, IntegrationName, AccessToken, RefreshToken, Expiry, ExpiryDate , ClientId, ClientSecret) VALUES (?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE AccessToken = VALUES(AccessToken), RefreshToken =VALUES(RefreshToken), Expiry = VALUES(Expiry), ExpiryDate = VALUES(ExpiryDate), ClientId = VALUES(ClientId) , ClientSecret = VALUES(ClientSecret);';
                     let values = [accountName, integration, jsonBody.access_token, jsonBody.refresh_token, jsonBody.expires_in, date, id, secret];
-                    await database.query(sql, values).catch(err => {
-                        logger.errorLog.error("Error updating refreshTokens in  " + integration + " for " + accountName);
+                    await database.query(INSERT_QUERY, values).catch(err => {
+                        logger.errorLog.error("Error updating refreshTokens in  " + integration + " for " + accountName + " " + err);
                     });
                 } finally {
                     try {
@@ -83,13 +82,14 @@ let expiryDate = (seconds) => {
 
 
 module.exports = new datafire.Action({
-    handler: async (input, context) => {
+    handler: async () => {
         let refresh;
         config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Selecting which tokens needs to be refreshed");
-            await database.query("SELECT AccountName,IntegrationName, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15").then(async result => {
+            const REFRESH_TOKENS = "SELECT AccountName,IntegrationName, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15"
+            await database.query(REFRESH_TOKENS).then(async result => {
                 if (result.length === 0) {
                     logger.accessLog.info("No integrations needs to be refreshed");
                     return "No AccessKeys needs to be refreshed";

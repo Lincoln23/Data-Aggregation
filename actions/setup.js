@@ -1,6 +1,4 @@
 const mysql = require('mysql');
-const axios = require('axios');
-let logger = require('./winston');
 exports = module.exports;
 
 exports.database = class Database {
@@ -31,15 +29,6 @@ exports.database = class Database {
 
 
 exports.getSchema = async (paramter) => {
-    let result = null;
-    let url = "http://localhost:8000";
-    url += '?host=' + paramter;
-    await axios.get(url)
-        .then(response => {
-            result = response.data.database;
-        }).catch(error => {
-            logger.errorLog.error("Error getting schema in setup " + error);
-        });
-    return result;
+    return "data_integration";
 };
 

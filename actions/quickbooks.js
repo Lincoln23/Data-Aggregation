@@ -14,9 +14,8 @@ module.exports = new datafire.Action({
         type: "string",
         title: "accountName",
     }],
-    handler: async (input, context) => {
+    handler: async (input) => {
         let qbo = null;
-        config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in quickbooks for " + input.accountName);
