@@ -118,14 +118,14 @@ Current you have to manually put the api keys in the `ApiKeys` table in the data
         ```
 ## Database
 **MySQL** 
-  - Set up SQL connection is `actions/config.json`
+  - Create `config.json` and set up SQL connection in `actions/config.json`
   ```sh                       
-const connection = mysql.createConnection({
-  host: "host",
-  user: "user",
-  password: "pass",
-  database: "Db"
-});
+{
+      host: "host",
+      user: "user",
+      password: "pass",
+      database: "Db"
+}
 ```
   - You will need to update the SQL insert queries for your own database
     - My database is setup as:
