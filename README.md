@@ -89,13 +89,13 @@ An automated data integration system that authorizes the user and seamlessly upd
 - `webAuth.js` - To obtain `Access Tokens` and `Refresh Tokens` 
 - send a **Get** request to: 
 ```sh                       
-http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_secret=${client_secret}&accountName=${account Name}
+http://localhost:3000/webAuth?integration=${name}&client_id=${client_id}&client_secret=${client_secret}&accountName=${account Name}
 ```
 
  ****Note****, when authorizing `shopify` an additional paramter of `shop` is required
 Example:
 ```sh                       
-http://localhost:3000/webAuth?integration=${name}&clientId=${client_id}&client_secret=${client_secret}&accountName=${account Name}&shop=${your shop name}
+http://localhost:3000/webAuth?integration=${name}&client_id=${client_id}&client_secret=${client_secret}&accountName=${account Name}&shop=${your shop name}
 ```
 
 - Credentials will be save to your MySQL database in `Accesskeys` 
