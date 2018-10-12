@@ -1,7 +1,7 @@
-let datafire = require('datafire');
+const datafire = require('datafire');
 const setup = require('./setup');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
 module.exports = new datafire.Action({
     inputs: [{
@@ -18,7 +18,6 @@ module.exports = new datafire.Action({
     }],
     handler: async (input) => {
         if (input.type === "view") {
-            let res;
             config.database = await setup.getSchema("abc");
             let database = new setup.database(config);
             let sql = "SELECT AccountName, IntegrationName, active from AccessKeys";
@@ -28,14 +27,12 @@ module.exports = new datafire.Action({
             await database.query(sql).catch(e => {
                 logger.errorLog.error("Error in activate.js 'view' " + e);
             }).then(async (result) => {
-                res = result;
                 try {
                     await database.close();
                 } catch (e) {
                     logger.errorLog.warn("Error closing database in activate.js 'view' " + e);
                 }
             });
-            return res;
         } else if (input.type === "on") {
             config.database = await setup.getSchema("abc");
             let database = new setup.database(config);
