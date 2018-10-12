@@ -1,8 +1,8 @@
 "use strict";
-let datafire = require('datafire');
+const datafire = require('datafire');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
 
 module.exports = new datafire.Action({
@@ -17,12 +17,11 @@ module.exports = new datafire.Action({
     }],
     handler: async (input, context) => {
         let google_gmail = null;
-        // let contextHost = context.request.headers.host;
-        config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in gmail for " + input.accountName);
-            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'gmail' AND Active = 1 AND AccountName= ?", input.accountName).then(result => {
+            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'gmail' AND Active = 1 AND AccountName= ?";
+            await database.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 google_gmail = require('@datafire/google_gmail').create({
                     access_token: result.AccessToken,
@@ -47,17 +46,17 @@ module.exports = new datafire.Action({
         }
         logger.accessLog.verbose("Syncing gmail for " + input.accountName);
         //returns message ids
-        const listMessagesResponse = await google_gmail.users.messages.list({
+        const MESSAGE_IDS = await google_gmail.users.messages.list({
             userId: "me",
         }, context);
-        let array = listMessagesResponse.messages;
-        //shortens the array
-        array.splice(input.limit, (array.length - input.limit));
+        let message_id = MESSAGE_IDS.messages;
+
+        message_id.splice(input.limit, (message_id.length - input.limit));   //shortens the message_id array to the limit user specified
         //for every message id get the email message; await till all is done
-        const messageMapping = new Promise(async (resolve, reject) => {
-            resolve(await Promise.all(array.map(messageObject =>
+        const MESSAGES = new Promise(async (resolve) => {
+            resolve(await Promise.all(message_id.map(message =>
                 google_gmail.users.messages.get({
-                    id: messageObject.id,
+                    id: message.id,
                     userId: "me",
                     format: "full",
                     prettyPrint: true,
@@ -65,14 +64,14 @@ module.exports = new datafire.Action({
                 }, context))));
         });
         // gets user profile
-        const userProfile = new Promise((resolve, reject) => {
+        const USER_PROFILE = new Promise((resolve) => {
             resolve(google_gmail.users.getProfile({
                 userId: "me",
                 alt: "json",
             }, context))
         });
         try {
-            return await Promise.all([messageMapping, userProfile]);
+            return await Promise.all([MESSAGES, USER_PROFILE]);
         } catch (e) {
             logger.errorLog.error("Error in gmail " + e);
             return e;
