@@ -1,8 +1,8 @@
 "use strict";
-let datafire = require('datafire');
+const datafire = require('datafire');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
 module.exports = new datafire.Action({
     inputs: [{
@@ -26,11 +26,11 @@ module.exports = new datafire.Action({
     }],
     handler: async (input, context) => {
         let google_calendar = null;
-        config.database = await setup.getSchema("abc");
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting Credentials in google_calendar for " + input.accountName);
-            await database.query("SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
+            const SQL = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE  IntegrationName = 'google_calendar' AND Active = 1 AND AccountName = ?"
+            await database.query(SQL, input.accountName).then(result => {
                 result = result[0];
                 google_calendar = require('@datafire/google_calendar').create({
                     access_token: result.AccessToken,
@@ -56,17 +56,16 @@ module.exports = new datafire.Action({
 
         logger.accessLog.verbose("Syncing in google_calendar for " + input.accountName);
         //return all events in the calendar, can add addition timeMax and timeMin params in RFC3339 timeStamp
-        const events = new Promise((resolve, reject) => {
-            const temp = google_calendar.events.list({
+        const EVENTS = new Promise((resolve) => {
+            resolve(google_calendar.events.list({
                 calendarId: input.id
                 //timeMax:
                 //timeMin:
-            }, context);
-            resolve(temp);
+            }, context));
         });
         //return when the user is free/busy
-        const freeBusy = new Promise((resolve, reject) => {
-            const temp1 = google_calendar.freebusy.query({
+        const FREE_BUSY = new Promise((resolve) => {
+            resolve(google_calendar.freebusy.query({
                 body: {
                     timeMin: input.start,
                     timeMax: input.end,
@@ -76,11 +75,10 @@ module.exports = new datafire.Action({
                     timeZone: input.timeZone,
                 },
                 alt: "json",
-            }, context);
-            resolve(temp1);
+            }, context));
         });
         try {
-            return await Promise.all([events, freeBusy]);
+            return await Promise.all([EVENTS, FREE_BUSY]);
         } catch (e) {
             logger.errorLog.error("Error in google_calendar " + e);
             return e;
