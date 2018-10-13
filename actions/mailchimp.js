@@ -21,6 +21,7 @@ let insert = (createTable, query, values, database) => {
         });
     })
 };
+
 module.exports = new datafire.Action({
     inputs: [{
         type: "string",
@@ -55,7 +56,7 @@ module.exports = new datafire.Action({
         let resultList = await mailchimp.getLists({
             dc: "us18",
         }, context);
-        for (const campaign_Report of resultList.lists) {
+         for (const campaign_Report of resultList.lists) {
             //if user marked as spam
             let abuseReport = await mailchimp.getListsIdAbuseReports({
                 list_id: campaign_Report.id,
@@ -97,7 +98,7 @@ module.exports = new datafire.Action({
                 "History": histroy.history,
                 "Locations": location.locations,
             };
-            result.push(campaignReport);
+            result.push(campaignReport1);
         }
         let campaigns = await mailchimp.getCampaigns({
             dc: "us18",

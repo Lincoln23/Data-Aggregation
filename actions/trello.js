@@ -19,7 +19,8 @@ module.exports = new datafire.Action({
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in trello for " + input.accountName);
-            await database.query("SELECT api_key, api_token FROM ApiKeys WHERE IntegrationName = 'trello' AND Active = 1 AND AccountName = ?", input.accountName).then(result => {
+            const QUERY_FOR_KEYS = "SELECT api_key, api_token FROM ApiKeys WHERE IntegrationName = 'trello' AND Active = 1 AND AccountName = ?"
+            await database.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 trello = require('@datafire/trello').create({
                     api_key: result.api_key,

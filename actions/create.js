@@ -61,7 +61,7 @@ module.exports = new datafire.Action({
 
         INPUTS = INPUTS.slice(0, INPUTS.length - 2);
         return datafire.flow(context)
-            .then(_ => google_sheets.spreadsheets.values.append({
+            .then(() => google_sheets.spreadsheets.values.append({
                 spreadsheetId: input.spreadsheetId,
                 range: "A1:A" + INPUTS.length,
                 body: {
@@ -71,7 +71,7 @@ module.exports = new datafire.Action({
                 },
                 valueInputOption: "RAW",
             }, context))
-            .then(_ => "Success")
+            .then(() => "Success")
     },
 });
 

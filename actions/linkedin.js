@@ -54,7 +54,7 @@ module.exports = new datafire.Action({
         }
         logger.accessLog.verbose("Syncing linkedin for " + input.accountName);
         //gets the Company's history
-        const companyHistory = new Promise((resolve) => {
+        const COMPANY_HISTORY = new Promise((resolve) => {
             resolve(linkedin.companies.id.historical_follow_statistics.get({
                 id: input.id,
                 'time-granularity': input.filter,
@@ -63,14 +63,14 @@ module.exports = new datafire.Action({
             }, context));
         });
         //gets the Company's Statistics
-        const companyStatistics = new Promise((resolve) => {
+        const COMPANY_STATISTICS = new Promise((resolve) => {
             resolve(linkedin.companies.id.company_statistics.get({
                 id: input.id,
                 format: "json",
             }, context));
         });
         try {
-            return await Promise.all([companyHistory, companyStatistics]);
+            return await Promise.all([COMPANY_HISTORY, COMPANY_STATISTICS]);
         } catch (e) {
             logger.errorLog.error("Error in linkedin " + e);
             return e;

@@ -18,15 +18,14 @@ module.exports = new datafire.Action({
     }],
     handler: async (input) => {
         if (input.type === "view") {
-            config.database = await setup.getSchema("abc");
             let database = new setup.database(config);
-            let sql = "SELECT AccountName, IntegrationName, active from AccessKeys";
+            let query = "SELECT AccountName, IntegrationName, active from AccessKeys";
             if (input.apikey === true) {
-                sql = "SELECT AccountName, IntegrationName, active from ApiKeys"
+                query = "SELECT AccountName, IntegrationName, active from ApiKeys"
             }
-            await database.query(sql).catch(e => {
+            await database.query(query).catch(e => {
                 logger.errorLog.error("Error in activate.js 'view' " + e);
-            }).then(async (result) => {
+            }).then(async () => {
                 try {
                     await database.close();
                 } catch (e) {
@@ -43,7 +42,7 @@ module.exports = new datafire.Action({
             }
             await database.query(sql, input.accountName).catch(err => {
                 logger.errorLog.error("Error enabling integration for " + input.accountName + " " + err);
-            }).then(async _ => {
+            }).then(async () => {
                 try {
                     await database.close();
                 } catch (e) {
@@ -51,7 +50,6 @@ module.exports = new datafire.Action({
                 }
             });
         } else if (input.type === "off") {
-            config.database = await setup.getSchema("abc");
             let database = new setup.database(config);
             logger.accessLog.info("Enabling integration for " + input.accountName);
             let sql = "UPDATE AccessKeys SET Active = 0 WHERE AccountName = ?";
@@ -60,7 +58,7 @@ module.exports = new datafire.Action({
             }
             await database.query(sql, input.accountName).catch(err => {
                 logger.errorLog.error("Error enabling integration for " + input.accountName + " " + err);
-            }).then(async _ => {
+            }).then(async () => {
                 try {
                     await database.close();
                 } catch (e) {

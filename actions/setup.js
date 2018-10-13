@@ -28,7 +28,3 @@ exports.database = class Database {
 };
 
 
-exports.getSchema = async (paramter) => {
-    return "data_integration";
-};
-

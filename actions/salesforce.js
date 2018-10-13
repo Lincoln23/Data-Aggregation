@@ -6,8 +6,6 @@ let config = require('./config.json');
 let refresh = require('./refreshToken');
 let logger = require('./winston');
 
-
-// about expiry https://salesforce.stackexchange.com/questions/73512/oauth-access-token-expiration
 module.exports = new datafire.Action({
     inputs: [{
         type: "string",
@@ -21,8 +19,8 @@ module.exports = new datafire.Action({
         let accountName;
         let databaseCred = new setup.database(config);
         try {
-            logger.accessLog.info("Getting Credentials in    Salesforce for " + input.accountName);
-            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret,AccountName FROM AccessKeys WHERE  IntegrationName = 'salesforce' AND Active = 1 AND AccountName = ?"
+            logger.accessLog.info("Getting Credentials in Salesforce for " + input.accountName);
+            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret,AccountName FROM AccessKeys WHERE  IntegrationName = 'salesforce' AND Active = 1 AND AccountName = ?";
             await databaseCred.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 refreshToken = result.RefreshToken;
@@ -64,8 +62,8 @@ module.exports = new datafire.Action({
                 });
                 opportunitySyncTime = contactsSyncTime = "1970-01-15T00:00:00.000Z"; //initialize first time syncing
                 const INSERT_CONTACT_SYNC_TIME = 'INSERT INTO SyncTime (Name, Time) VALUES (?,?)';
-                let syncContactValues = ["SalesForceContact", contactsSyncTime];
-                database.query(INSERT_CONTACT_SYNC_TIME, syncContactValues).then(() => {
+                let contactValues = ["SalesForceContact", contactsSyncTime];
+                database.query(INSERT_CONTACT_SYNC_TIME, contactValues).then(() => {
                 }).catch((e) => {
                     logger.errorLog.error("Error inserting to SyncTime for SalesForceContact " + e);
                 });
@@ -86,7 +84,8 @@ module.exports = new datafire.Action({
                 return contactsSyncTime;
             }).then(async time => {
                 try {
-                    return await salesforce.version.query.get({ //dataFire
+                    console.log(time);
+                    return await salesforce.version.query.get({
                         version: "v24.0",
                         q: "SELECT Id, Name,email, phone, Account.Name, Account.Id, contact.owner.Alias FROM Contact Where LastModifiedDate > " + time + " ORDER BY Name ASC",
                     }, context);
@@ -107,7 +106,7 @@ module.exports = new datafire.Action({
                         }
                     }
                     const CREATE_TABLE = "CREATE TABLE IF NOT EXISTS SalesForceContact(id int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT, ContactId varchar(1024), Name varchar(1024),Email varchar(1024), Phone varchar(1024), AccountName varchar(1024), AccountID varchar(1024), Alias varchar(1024))";
-                    database.query(CREATE_TABLE).create(err => {
+                    database.query(CREATE_TABLE).catch(err => {
                         logger.errorLog.error("Error creating table SalesForceContact Msg: " + err);
                     }).then(() => {
                         const INSERT_CONTACTS = 'INSERT INTO SalesForceContact (ContactId, Name, Email, Phone,AccountName, AccountID,Alias) VALUES (?,?,?,?,?,?,?)';
@@ -116,7 +115,6 @@ module.exports = new datafire.Action({
                             logger.errorLog.error("Error inserting to SyncTime for SalesForceContact " + e);
                         });
                     })
-
                 });
             }).then(async () => {
                 if (newDataContact) { //only update time if there is new data

@@ -50,8 +50,8 @@ let mongoTest = (host, database, query) => {
         });
     });
 };
+
 let insertIntoDb = async (result, dbType,) => {
-    config.database = await setup.getSchema("abc");
     let database = new setup.database(config);
     logger.accessLog.info("Inserting into externalDatabase for " + dbType);
     const CREATE_TABLE = "CREATE TABLE IF NOT EXISTS externalDatabase(id int auto_increment primary key , Date datetime , Everything text , DatabaseType varchar(100) , constraint externalDatabase_id_uindex unique (id))";
@@ -128,7 +128,6 @@ module.exports = new datafire.Action({
                     logger.errorLog.error("Error saving mongo database " + input.host + " " + e);
                 }
             }
-
         }
         return res;
     },

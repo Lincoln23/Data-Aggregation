@@ -172,7 +172,6 @@ module.exports = new datafire.Action({
         let code = null;
         let state2 = null;
         let url = null;
-        config.database = await setup.getSchema("abc"); // use context to get url here
         let shopifyObj = null;
         if (input.integration === "shopify") {
             let tempObj = getShopifyURL(shop, clientId, clientSecret);
@@ -182,7 +181,7 @@ module.exports = new datafire.Action({
             url = getOAuthURL(clientId, redirect_url, integration);
         }
         app.get('/', (req, res) => {
-            if (input.integration === "shopify") {
+            if (integration === "shopify") {
                 shopifyObj.exchange_temporary_token(req.query, async function (err, data) {
                     await insertIntoDB(data, accountName, integration, clientId, clientSecret);
                 });

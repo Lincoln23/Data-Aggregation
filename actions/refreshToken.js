@@ -83,18 +83,17 @@ let expiryDate = (seconds) => {
 
 module.exports = new datafire.Action({
     handler: async () => {
-        let refresh;
-        config.database = await setup.getSchema("abc");
+        let list;
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Selecting which tokens needs to be refreshed");
-            const REFRESH_TOKENS = "SELECT AccountName,IntegrationName, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15"
+            const REFRESH_TOKENS = "SELECT AccountName,IntegrationName, RefreshToken, ClientId, ClientSecret from AccessKeys WHERE (TIMESTAMPDIFF(MINUTE,NOW(),ExpiryDate)) <= 15";
             await database.query(REFRESH_TOKENS).then(async result => {
                 if (result.length === 0) {
                     logger.accessLog.info("No integrations needs to be refreshed");
                     return "No AccessKeys needs to be refreshed";
                 }
-                refresh = result;
+                list = result;
             }).catch((err) => {
                 logger.errorLog.error("Error selecting refreshTimes from AccessKeys " + err);
             });
@@ -105,13 +104,13 @@ module.exports = new datafire.Action({
                 logger.errorLog.error("Error closing database in refreshToken in handler " + e);
             }
         }
-        if (refresh !== undefined) {
-            await refresh.forEach(async value => {
-                accountName = value.AccountName;
-                integration = value.IntegrationName;
-                refreshToken = value.RefreshToken;
-                clientID = value.ClientId;
-                clientSecret = value.ClientSecret;
+        if (list !== undefined) {
+            await list.forEach(async service => {
+                accountName = service.AccountName;
+                integration = service.IntegrationName;
+                refreshToken = service.RefreshToken;
+                clientID = service.ClientId;
+                clientSecret = service.ClientSecret;
                 await refreshKeys(accountName, clientID, clientSecret, refreshToken, integration);
             });
         }
