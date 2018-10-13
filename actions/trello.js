@@ -1,8 +1,8 @@
 "use strict";
 const datafire = require('datafire');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
 
 //BUG: Database will close before it is finished inserting
@@ -19,7 +19,7 @@ module.exports = new datafire.Action({
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting credentials in trello for " + input.accountName);
-            const QUERY_FOR_KEYS = "SELECT api_key, api_token FROM ApiKeys WHERE IntegrationName = 'trello' AND Active = 1 AND AccountName = ?"
+            const QUERY_FOR_KEYS = "SELECT api_key, api_token FROM ApiKeys WHERE IntegrationName = 'trello' AND Active = 1 AND AccountName = ?";
             await database.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 trello = require('@datafire/trello').create({

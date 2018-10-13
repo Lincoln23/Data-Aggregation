@@ -1,7 +1,6 @@
 "use strict";
-let datafire = require('datafire');
-
-let magento = require('@datafire/magento').actions;
+const datafire = require('datafire');
+const magento = require('@datafire/magento').actions;
 //TODO in the future
 module.exports = new datafire.Action({
   handler: async (input, context) => {

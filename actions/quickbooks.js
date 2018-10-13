@@ -1,8 +1,8 @@
 const QuickBooks = require('node-quickbooks');
 const datafire = require('datafire');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
 
 module.exports = new datafire.Action({

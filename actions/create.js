@@ -1,8 +1,8 @@
 "use strict";
-let datafire = require('datafire');
+const datafire = require('datafire');
 const setup = require('./setup.js');
-let config = require('./config.json');
-let logger = require('./winston');
+const config = require('./config.json');
+const logger = require('./winston');
 
 module.exports = new datafire.Action({
     description: "Creates a new item in the spreadsheet",
@@ -35,7 +35,7 @@ module.exports = new datafire.Action({
         let database = new setup.database(config);
         try {
             logger.accessLog.info("Getting Credentials in google_Sheets for " + input.accountName);
-            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND Active = 1 AND AccountName = ?"
+            const QUERY_FOR_KEYS = "SELECT AccessToken,RefreshToken,ClientId,ClientSecret FROM AccessKeys WHERE IntegrationName = 'google_sheets' AND Active = 1 AND AccountName = ?";
             await database.query(QUERY_FOR_KEYS, input.accountName).then(result => {
                 result = result[0];
                 google_sheets = require('@datafire/google_sheets').create({

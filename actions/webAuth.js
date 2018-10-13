@@ -1,13 +1,13 @@
 "use strict";
-let datafire = require('datafire');
+const datafire = require('datafire');
 const request = require('request');
-let express = require('express');
+const express = require('express');
 const setup = require('./setup');
-let config = require('./config.json');
-let webUrl = require('../auth');
-let logger = require('./winston');
-let shopifyAPI = require('shopify-node-api');
-let app = express();
+const config = require('./config.json');
+const webUrl = require('../auth');
+const logger = require('./winston');
+const shopifyAPI = require('shopify-node-api');
+const app = express();
 app.listen(3333, () => logger.accessLog.info('Listening for redirect URL on port: 3333'));
 
 //WARN need to have integration,clientId ... variables here or else they won't update in the app.get method;

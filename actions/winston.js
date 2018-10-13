@@ -1,6 +1,6 @@
-let winston = require('winston');
+const winston = require('winston');
 const MESSAGE = Symbol.for('message');
-let path = require('path');
+const path = require('path');
 
 let logPath = __dirname;
 

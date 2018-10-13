@@ -1,10 +1,10 @@
 "use strict";
 const datafire = require('datafire');
 const setup = require('./setup.js');
-let fs = require('fs');
-let config = require('./config.json');
-let refresh = require('./refreshToken');
-let logger = require('./winston');
+const fs = require('fs');
+const config = require('./config.json');
+const refresh = require('./refreshToken');
+const logger = require('./winston');
 
 module.exports = new datafire.Action({
     inputs: [{
