@@ -48,6 +48,7 @@ module.exports = new datafire.Action({
             return {error: "Invalid AccountName or integration disabled"};
         }
         logger.accessLog.info("Syncing SalesForce for " + input.accountName);
+        let display = [];
         let currentTime = new Date().toISOString(); // Date need to be in YYYY-MM-DDTHH:MM:SSZ format
         let newDataContact = 0; // set to true only if there is new data and it will update the last synced time
         let newDataOpportunity = 0; // set to true only if there is new data and it will update the last synced time
@@ -93,6 +94,7 @@ module.exports = new datafire.Action({
                     throw(e);
                 }
             }).then(result => {
+                re.push(result);
                 result.records.forEach(contact => {
                     newDataContact = 1; // there is new data so set to 1
                     if (contact.Account == null) {//For objects that are null, any properties within need to be set as null as well
@@ -147,6 +149,7 @@ module.exports = new datafire.Action({
                     throw(e);
                 }
             }).then(values => {
+                display.push(values);
                 values.records.forEach(opportunity => {
                     newDataOpportunity = 1; // there is new data so set to 1
                     if (opportunity.Account == null) {//For objects that are null, any properties within need to be set as null as well
@@ -176,7 +179,7 @@ module.exports = new datafire.Action({
             }).catch(e => {
                 logger.errorLog.error("Error caught in final catch block for Opportunity, Msg: " + e);
             });
-            return "SalesForce.js is running";
+            return display;
         } finally {
             try {
                 await database.close();

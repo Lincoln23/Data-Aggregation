@@ -18,6 +18,7 @@ module.exports = new datafire.Action({
     }],
     handler: async (input) => {
         if (input.type === "view") {
+            let res;
             let database = new setup.database(config);
             let query = "SELECT AccountName, IntegrationName, active from AccessKeys";
             if (input.apikey === true) {
@@ -25,15 +26,16 @@ module.exports = new datafire.Action({
             }
             await database.query(query).catch(e => {
                 logger.errorLog.error("Error in activate.js 'view' " + e);
-            }).then(async () => {
+            }).then(async (result) => {
+                res = result;
                 try {
                     await database.close();
                 } catch (e) {
                     logger.errorLog.warn("Error closing database in activate.js 'view' " + e);
                 }
             });
+            return res;
         } else if (input.type === "on") {
-            config.database = await setup.getSchema("abc");
             let database = new setup.database(config);
             logger.accessLog.info("Enabling integration for " + input.accountName);
             let sql = "UPDATE AccessKeys SET Active = 1 WHERE AccountName = ?";
