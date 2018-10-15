@@ -56,49 +56,49 @@ module.exports = new datafire.Action({
         let resultList = await mailchimp.getLists({
             dc: "us18",
         }, context);
-         for (const campaign_Report of resultList.lists) {
+        for (const list_report of resultList.lists) {
             //if user marked as spam
             let abuseReport = await mailchimp.getListsIdAbuseReports({
-                list_id: campaign_Report.id,
+                list_id: list_report.id,
                 dc: "us18",
             }, context);
             //Get up to the previous 180 days of daily detailed aggregated activity stats for a list, not including Automation activity.
             let activity = await mailchimp.getListsIdActivity({
-                list_id: campaign_Report.id,
+                list_id: list_report.id,
                 dc: "us18",
             }, context);
             //Get a list of the top email clients based on user-agent strings.
             let topClients = await mailchimp.getListsIdClients({
-                list_id: campaign_Report.id,
+                list_id: list_report.id,
                 dc: "us18",
             }, context);
             //Get a month-by-month summary of a specific list's growth activity.
             let histroy = await mailchimp.getListsIdGrowthHistory({
-                list_id: campaign_Report.id,
+                list_id: list_report.id,
                 dc: "us18",
             }, context);
             //Get the locations (countries) that the list's subscribers have been tagged to based on geocoding their IP address.
             let location = await mailchimp.getListsIdLocations({
-                list_id: campaign_Report.id,
+                list_id: list_report.id,
                 dc: "us18",
             }, context);
             //Creating a custom JSON response for Lists
-            let campaignReport1 = {
+            let listReport = {
                 "Identifier": "List",
-                "List_Name": campaign_Report.name,
-                "Permission_reminder": campaign_Report.permission_reminder,
-                "Contact": campaign_Report.contact,
-                "Campaign_defaults": campaign_Report.campaign_defaults,
-                "Date_created": campaign_Report.date_created,
-                "Url": campaign_Report.subscribe_url_short,
-                "Stats": campaign_Report.stats,
+                "List_Name": list_report.name,
+                "Permission_reminder": list_report.permission_reminder,
+                "Contact": list_report.contact,
+                "Campaign_defaults": list_report.campaign_defaults,
+                "Date_created": list_report.date_created,
+                "Url": list_report.subscribe_url_short,
+                "Stats": list_report.stats,
                 "Spam_reports": abuseReport.abuse_reports,
                 "Activity": activity.activity,
                 "Top_clients": topClients.clients,
                 "History": histroy.history,
                 "Locations": location.locations,
             };
-            result.push(campaignReport1);
+            result.push(listReport);
         }
         let campaigns = await mailchimp.getCampaigns({
             dc: "us18",
@@ -108,8 +108,8 @@ module.exports = new datafire.Action({
                 dc: "us18",
                 campaign_id: campaign.id,
             }, context);
-            //Creating a custom JSON repsonse for the Campaigns
-            let campaignReport2 = {
+            //Creating a custom JSON response for the Campaigns
+            let campaignReport = {
                 "Identifier": "Campaign",
                 "Campaign_name": campaign_Report.campaign_title,
                 "Create_time": campaign.create_time,
@@ -125,7 +125,7 @@ module.exports = new datafire.Action({
                 "Opens": campaign_Report.opens,
                 "Clicks": campaign_Report.clicks,
             };
-            result.push(campaignReport2);
+            result.push(campaignReport);
         }
 
 

@@ -85,7 +85,6 @@ module.exports = new datafire.Action({
                 return contactsSyncTime;
             }).then(async time => {
                 try {
-                    console.log(time);
                     return await salesforce.version.query.get({
                         version: "v24.0",
                         q: "SELECT Id, Name,email, phone, Account.Name, Account.Id, contact.owner.Alias FROM Contact Where LastModifiedDate > " + time + " ORDER BY Name ASC",
@@ -94,7 +93,7 @@ module.exports = new datafire.Action({
                     throw(e);
                 }
             }).then(result => {
-                re.push(result);
+                display.push(result);
                 result.records.forEach(contact => {
                     newDataContact = 1; // there is new data so set to 1
                     if (contact.Account == null) {//For objects that are null, any properties within need to be set as null as well
@@ -126,7 +125,7 @@ module.exports = new datafire.Action({
                     });
                 }
             }).catch(async err => {
-                let regex = new RegExp('code 401');
+                let regex = new RegExp('code 401'); //unauthorized error
                 if (err.toString().match(regex)) {
                     logger.errorLog.info("Credentials for salesforce expired.. refreshing");
                     refresh.refreshKeys(accountName, clientId, clientSecret, refreshToken, "salesforce");
