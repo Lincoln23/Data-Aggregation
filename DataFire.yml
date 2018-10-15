@@ -94,6 +94,7 @@ options:
   cors: true
 tests: {}
 # scheduling is done here
+# one min cron fn * * * * *
 tasks:
   shopify:
     schedule: cron(0 */12 * * *)
