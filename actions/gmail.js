@@ -72,9 +72,9 @@ module.exports = new datafire.Action({
         });
         try {
             return await Promise.all([MESSAGES, USER_PROFILE]);
-        } catch (e) {
-            logger.errorLog.error("Error in gmail " + e);
-            return e;
+        } catch (error) {
+            logger.errorLog.error("An error has occured in Gmail: " + error);
+            return error;
         }
     },
 });
