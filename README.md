@@ -1,4 +1,4 @@
-## Data-Integration
+## Data-Aggregation
 
 An automated data integration system that authorizes the user and seamlessly updates/pulls data from 10+ services on a set schedule. Data is stored into a MySQL database
 
